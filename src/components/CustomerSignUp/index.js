@@ -49,13 +49,12 @@ export default class index extends Component {
       /[a-zA-Z\ ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]+/;
     let patternID = /^[a-zA-Z][a-zA-Z0-9\.]{7,15}/; //char num . 8->16
     let patternPhoneNumber = /[0-9]+/;
-    let patternEmail = /^[a-z][a-z0-9_\.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,8}){1,2}$/;
+    let patternEmail = /^[a-z][a-z0-9_\.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,4}){1,2}$/;
     // let patternEmail = /^[a-z][a-z0-9_\.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,}){1,}$/; more truth
     let patternPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/;
     //Minimum eight and maximum 10 characters, at least one uppercase letter, one lowercase letter, one number and one special character:
 
     if (checkPattern(patternID, username) === false) {
-      console.log(username);
       this.setState({
         notiContent: "Username not valid",
       });
@@ -73,7 +72,6 @@ export default class index extends Component {
 
     if (email !== "") {
       if (checkPattern(patternEmail, email) === false) {
-        console.log(email);
         this.setState({
           notiContent: "Email not valid",
         });
@@ -126,9 +124,14 @@ export default class index extends Component {
     try {
       result = await postPublic("customer/auth/signup", user);
     } catch (error) {
-      console.log(error.response.data.errorCode);
+      console.log(error);
       this.setState({
-        notiContent: error.response.data.errorCode,
+        notiContent:
+        error.response.data.errorCode !== undefined
+          ? error.response.data.errorCode
+          : error.response.data.message !== undefined
+          ? error.response.data.message
+          : "Fail to sign up",
       });
       this.toggle();
       return;

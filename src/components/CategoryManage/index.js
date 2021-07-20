@@ -30,8 +30,75 @@ export default class index extends Component {
     });
   }
 
-  receiveResult(result) {
-    console.log(result);
+  async receiveResult(finalResult) {
+    let result = null;
+    try {
+      result = await getPublic("public/category/parent");
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent:
+          error.response.data.errorCode !== undefined
+            ? error.response.data.errorCode
+            : error.response.data.message !== undefined
+            ? error.response.data.message
+            : "Fail to get data",
+      });
+      this.toggle();
+      return;
+    }
+    if (
+      finalResult.data.successCode === "SUCCESS_DELETE_CATEGORY" &&
+      result.data.data.length !== this.state.parentCategory.length &&
+      result.data.data.length > 0
+    ) {
+      this.setState({ parentCategoryId: this.state.parentCategory[0].id, categoryName: this.state.parentCategory[0].categoryName });
+    }
+    this.setState(
+      {
+        parentCategory: result.data.data.sort((a, b) => {
+          var nameA = a.categoryName.toUpperCase();
+          var nameB = b.categoryName.toUpperCase();
+          return nameA.localeCompare(nameB);
+        }),
+      },
+      () => {
+        if (this.state.parentCategory.length > 0) {
+          if (finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY") {
+            this.setState({ parentCategoryId: finalResult.data.data.id, categoryName: finalResult.data.data.categoryName });
+          }
+
+          let parentCategoryId = finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY" ? finalResult.data.data.id : this.state.parentCategoryId;
+
+          try {
+            result = getPublic(`public/category/sub/${parentCategoryId}`);
+            result.then((e) => {
+              this.setState({
+                subCategory: e.data.data.sort((a, b) => {
+                  var nameA = a.categoryName.toUpperCase();
+                  var nameB = b.categoryName.toUpperCase();
+                  return nameA.localeCompare(nameB);
+                }),
+              });
+            });
+          } catch (error) {
+            console.log(error);
+            this.setState({
+              notiContent:
+                error.response.data.errorCode !== undefined
+                  ? error.response.data.errorCode
+                  : error.response.data.message !== undefined
+                  ? error.response.data.message
+                  : "Fail to get data",
+            });
+            this.toggle();
+            return;
+          }
+        } else {
+          this.setState({ parentCategoryId: null, categoryName: null });
+        }
+      }
+    );
   }
 
   handleParentRowClick(parentCategoryId, categoryName) {
@@ -49,9 +116,14 @@ export default class index extends Component {
         });
       });
     } catch (error) {
-      console.log(error.response.data.error);
+      console.log(error);
       this.setState({
-        notiContent: "Fail to get data",
+        notiContent:
+          error.response.data.errorCode !== undefined
+            ? error.response.data.errorCode
+            : error.response.data.message !== undefined
+            ? error.response.data.message
+            : "Fail to get data",
       });
       this.toggle();
       return;
@@ -63,9 +135,14 @@ export default class index extends Component {
     try {
       result = await getPublic("public/category/parent");
     } catch (error) {
-      console.log(error.response.data.error);
+      console.log(error);
       this.setState({
-        notiContent: "Fail to get data",
+        notiContent:
+          error.response.data.errorCode !== undefined
+            ? error.response.data.errorCode
+            : error.response.data.message !== undefined
+            ? error.response.data.message
+            : "Fail to get data",
       });
       this.toggle();
       return;
@@ -84,24 +161,23 @@ export default class index extends Component {
           try {
             result = getPublic(`public/category/sub/${this.state.parentCategory[0].id}`);
             result.then((e) => {
-              this.setState(
-                {
-                  subCategory: e.data.data.sort((a, b) => {
-                    var nameA = a.categoryName.toUpperCase();
-                    var nameB = b.categoryName.toUpperCase();
-                    return nameA.localeCompare(nameB);
-                  }),
-                },
-                () => {
-                  console.log(this.state.parentCategory);
-                  console.log(this.state.subCategory);
-                }
-              );
+              this.setState({
+                subCategory: e.data.data.sort((a, b) => {
+                  var nameA = a.categoryName.toUpperCase();
+                  var nameB = b.categoryName.toUpperCase();
+                  return nameA.localeCompare(nameB);
+                }),
+              });
             });
           } catch (error) {
-            console.log(error.response.data.error);
+            console.log(error);
             this.setState({
-              notiContent: "Fail to get data",
+              notiContent:
+                error.response.data.errorCode !== undefined
+                  ? error.response.data.errorCode
+                  : error.response.data.message !== undefined
+                  ? error.response.data.message
+                  : "Fail to get data",
             });
             this.toggle();
             return;
@@ -110,6 +186,7 @@ export default class index extends Component {
       }
     );
   }
+
   render() {
     return (
       <div>
@@ -156,7 +233,7 @@ export default class index extends Component {
                     </thead>
                     <tbody>
                       {this.state.parentCategory.map((e, index) => (
-                        <tr key={index} onClick={() => this.handleParentRowClick(e.id, e.categoryName)}>
+                        <tr key={e.categoryName} onClick={() => this.handleParentRowClick(e.id, e.categoryName)}>
                           <th scope="row">{index + 1}</th>
                           <td>{e.categoryName}</td>
                           <td>
@@ -224,7 +301,7 @@ export default class index extends Component {
                     </thead>
                     <tbody>
                       {this.state.subCategory.map((e, index) => (
-                        <tr key={index}>
+                        <tr key={e.categoryName}>
                           <th scope="row">{index + 1}</th>
                           <td>{e.categoryName}</td>
                           <td>

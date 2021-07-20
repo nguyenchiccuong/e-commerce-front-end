@@ -50,12 +50,14 @@ class index extends Component {
   handleSignOut() {
     if (this.state.signInType === "em") {
       const { cookies } = this.props;
-      cookies.remove("em"); // remove the cookie
+      cookies.set("em", "", { expires: new Date(), path: "/" });
       this.setState({ em: cookies.get("em") });
+      localStorage.removeItem("em");
     } else if (this.state.signInType === "cus") {
       const { cookies } = this.props;
-      cookies.remove("cus"); // remove the cookie
-      this.setState({ cus: cookies.get("cus") });
+      cookies.set("cus", "", { expires: new Date(), path: "/" });
+      this.setState({ em: cookies.get("cus") });
+      localStorage.removeItem("cus");
     }
     this.props.history.push(this.state.signOutRedirect);
     // window.location.href = this.state.signOutRedirect;

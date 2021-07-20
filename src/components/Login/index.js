@@ -53,9 +53,14 @@ class index extends Component {
         try {
           result = await postPublic("employee/auth/signin", user);
         } catch (error) {
-          console.log(error.response.data.error);
+          console.log(error);
           this.setState({
-            notiContent: "Username, password wrong",
+            notiContent:
+              error.response.data.errorCode !== undefined
+                ? error.response.data.errorCode
+                : error.response.data.message !== undefined
+                ? error.response.data.message
+                : "Username, password wrong",
           });
           this.toggle();
           return;
@@ -64,10 +69,14 @@ class index extends Component {
         try {
           result = await postPublic("customer/auth/signin", user);
         } catch (error) {
-          console.log(error.status);
-          console.log(error.response);
+          console.log(error);
           this.setState({
-            notiContent: error.response.data.message,
+            notiContent:
+              error.response.data.errorCode !== undefined
+                ? error.response.data.errorCode
+                : error.response.data.message !== undefined
+                ? error.response.data.message
+                : "Username, password wrong",
           });
           this.toggle();
           return;
@@ -81,7 +90,7 @@ class index extends Component {
           ) {
             const { cookies } = this.props;
             cookies.set("em", JSON.stringify(result.data.data), { expires: new Date(new Date().valueOf() + 1000 * 3600 * 24), path: "/" });
-            this.setState({ user: cookies.get("em") });
+            this.setState({ em: cookies.get("em") });
             localStorage.setItem("em", JSON.stringify(result.data.data));
             //redirect to manage page
           } else {
@@ -94,7 +103,7 @@ class index extends Component {
           if (result.data.successCode === "SUCCESS_CUSTOMER_LOGIN" && result.data.data.role === "ROLE_CUSTOMER") {
             const { cookies } = this.props;
             cookies.set("cus", JSON.stringify(result.data.data), { expires: new Date(new Date().valueOf() + 1000 * 3600 * 24), path: "/" });
-            this.setState({ user: cookies.get("cus") });
+            this.setState({ cus: cookies.get("cus") });
             localStorage.setItem("cus", JSON.stringify(result.data.data));
             //redirect to product page or review page page
           } else {

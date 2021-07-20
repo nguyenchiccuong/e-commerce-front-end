@@ -1,6 +1,7 @@
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import { Col, Form, FormGroup, Label, Input } from "reactstrap";
 import React, { Component } from "react";
+import { post, put, del } from "../../httpHelper";
 
 export default class CategoryModal extends Component {
   constructor(props) {
@@ -8,31 +9,129 @@ export default class CategoryModal extends Component {
     this.state = {
       modal: false,
       categoryName: this.props.categoryName,
+      message: "",
     };
 
     this.toggle = this.toggle.bind(this);
     this.toggleSave = this.toggleSave.bind(this);
+    this.handleCategoryNameChange = this.handleCategoryNameChange.bind(this);
   }
 
   toggle() {
     this.setState({
       modal: !this.state.modal,
     });
-    // this.setState({ categoryName: "" });
-    console.log(this.props.business)
-    console.log(this.props.parentCategoryId)
-    console.log(this.props.categoryName)
-  }
-  toggleSave() {
-    console.log(this.props.business)
-    this.setState({
-      modal: !this.state.modal,
-    });
   }
 
-  handleCategoryNameChange(e, key) {
-    console.log(this.props.categoryName);
-    this.setState({ [key]: e.target.value });
+  async toggleSave() {
+    let result = null;
+    let category = {};
+    category.categoryName = this.state.categoryName;
+    if (this.props.business === "add") {
+      try {
+        result = await post(`employee/category/parent`, category);
+      } catch (error) {
+        console.log(error);
+        this.setState({
+          message:
+            error.response.data.errorCode !== undefined
+              ? error.response.data.errorCode
+              : error.response.data.message !== undefined
+              ? error.response.data.message
+              : "Fail to save data",
+        });
+        setTimeout(() => {
+          this.setState({
+            message: "",
+          });
+        }, 2000);
+        return;
+      }
+      this.props.receiveResult(result);
+      this.setState({
+        modal: !this.state.modal,
+        categoryName: "",
+      });
+    } else if (this.props.business === "addsub") {
+      category.id = this.props.parentCategoryId;
+      try {
+        result = await post(`employee/category/sub`, category);
+      } catch (error) {
+        console.log(error);
+        this.setState({
+          message:
+            error.response.data.errorCode !== undefined
+              ? error.response.data.errorCode
+              : error.response.data.message !== undefined
+              ? error.response.data.message
+              : "Fail to save data",
+        });
+        setTimeout(() => {
+          this.setState({
+            message: "",
+          });
+        }, 2000);
+        return;
+      }
+      this.props.receiveResult(result);
+      this.setState({
+        modal: !this.state.modal,
+        categoryName: "",
+      });
+    } else if (this.props.business === "update") {
+      category.id = this.props.categoryId;
+      try {
+        result = await put(`employee/category`, category);
+      } catch (error) {
+        console.log(error);
+        this.setState({
+          message:
+            error.response.data.errorCode !== undefined
+              ? error.response.data.errorCode
+              : error.response.data.message !== undefined
+              ? error.response.data.message
+              : "Fail to save data",
+        });
+        setTimeout(() => {
+          this.setState({
+            message: "",
+          });
+        }, 2000);
+        return;
+      }
+      this.props.receiveResult(result);
+      this.setState({
+        modal: !this.state.modal,
+      });
+    } else if (this.props.business === "del") {
+      try {
+        result = await del(`employee/category/${this.props.categoryId}`);
+      } catch (error) {
+        console.log(error);
+        this.setState({
+          message:
+            error.response.data.errorCode !== undefined
+              ? error.response.data.errorCode
+              : error.response.data.message !== undefined
+              ? error.response.data.message
+              : "Fail to save data",
+        });
+        setTimeout(() => {
+          this.setState({
+            message: "",
+          });
+        }, 2000);
+        return;
+      }
+      this.props.receiveResult(result);
+      this.setState({
+        modal: !this.state.modal,
+      });
+    }
+  }
+
+  handleCategoryNameChange(e) {
+    this.setState({ categoryName: e.target.value });
   }
 
   render() {
@@ -44,6 +143,7 @@ export default class CategoryModal extends Component {
         <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className} size="lg">
           <ModalHeader toggle={this.toggle}>{this.props.title}</ModalHeader>
           <ModalBody>
+            <h4 className="text-danger">{this.state.message}</h4>
             <Form>
               <FormGroup row>
                 <Label sm={4}>Id</Label>
@@ -62,7 +162,7 @@ export default class CategoryModal extends Component {
                     id="categoryName"
                     placeholder="Category name"
                     value={this.state.categoryName}
-                    onChange={(e) => this.handleCategoryNameChange(e, "categoryName")}
+                    onChange={this.handleCategoryNameChange}
                   />
                 </Col>
               </FormGroup>
