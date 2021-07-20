@@ -7,7 +7,7 @@ export default class CategoryModal extends Component {
     super(props);
     this.state = {
       modal: false,
-      categoryName: this.props.categoryName || "",
+      categoryName: this.props.categoryName,
     };
 
     this.toggle = this.toggle.bind(this);
@@ -18,15 +18,20 @@ export default class CategoryModal extends Component {
     this.setState({
       modal: !this.state.modal,
     });
-    this.setState({ categoryName: "" });
+    // this.setState({ categoryName: "" });
+    console.log(this.props.business)
+    console.log(this.props.parentCategoryId)
+    console.log(this.props.categoryName)
   }
   toggleSave() {
+    console.log(this.props.business)
     this.setState({
       modal: !this.state.modal,
     });
   }
 
-  handleCategoryNamechange(e, key) {
+  handleCategoryNameChange(e, key) {
+    console.log(this.props.categoryName);
     this.setState({ [key]: e.target.value });
   }
 
@@ -57,7 +62,7 @@ export default class CategoryModal extends Component {
                     id="categoryName"
                     placeholder="Category name"
                     value={this.state.categoryName}
-                    onChange={(e) => this.handleCategoryNamechange(e, "categoryName")}
+                    onChange={(e) => this.handleCategoryNameChange(e, "categoryName")}
                   />
                 </Col>
               </FormGroup>

@@ -5,6 +5,7 @@ import SideBar from "../SideBar";
 import Footer from "../Footer";
 import { Button, Input, FormGroup, Form } from "reactstrap";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import { Table } from "reactstrap";
 import CategoryModal from "./CategoryModal";
 import { getPublic } from "../../httpHelper";
 
@@ -15,7 +16,7 @@ export default class index extends Component {
       modal: false,
       notiContent: "",
       parentCategory: [],
-      subCategroy: [],
+      subCategory: [],
       parentCategoryId: null,
       categoryName: null,
     };
@@ -31,6 +32,30 @@ export default class index extends Component {
 
   receiveResult(result) {
     console.log(result);
+  }
+
+  handleParentRowClick(parentCategoryId, categoryName) {
+    let result = null;
+    this.setState({ parentCategoryId: parentCategoryId, categoryName: categoryName });
+    try {
+      result = getPublic(`public/category/sub/${parentCategoryId}`);
+      result.then((e) => {
+        this.setState({
+          subCategory: e.data.data.sort((a, b) => {
+            var nameA = a.categoryName.toUpperCase();
+            var nameB = b.categoryName.toUpperCase();
+            return nameA.localeCompare(nameB);
+          }),
+        });
+      });
+    } catch (error) {
+      console.log(error.response.data.error);
+      this.setState({
+        notiContent: "Fail to get data",
+      });
+      this.toggle();
+      return;
+    }
   }
 
   async componentDidMount() {
@@ -120,7 +145,7 @@ export default class index extends Component {
                     </Form>
                   </div>
 
-                  <table className="table table-striped">
+                  <Table className="table-striped">
                     <thead>
                       <tr>
                         <th scope="col">#</th>
@@ -130,23 +155,40 @@ export default class index extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <th scope="row">1</th>
-                        <td></td>
-                        <td></td>
-                      </tr>
-                      <tr>
-                        <th scope="row">2</th>
-                        <td>Jacob</td>
-                        <td>Thornton</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">3</th>
-                        <td>Larry</td>
-                        <td>the Bird</td>
-                      </tr>
+                      {this.state.parentCategory.map((e, index) => (
+                        <tr key={index} onClick={() => this.handleParentRowClick(e.id, e.categoryName)}>
+                          <th scope="row">{index + 1}</th>
+                          <td>{e.categoryName}</td>
+                          <td>
+                            <CategoryModal
+                              color="warning"
+                              title="Update Category"
+                              buttonLabel="Update"
+                              actionButtonColor="warning"
+                              actionButtonLabel="Save"
+                              business="update"
+                              categoryId={e.id}
+                              categoryName={e.categoryName}
+                              receiveResult={(result) => this.receiveResult(result)}
+                            />
+                          </td>
+                          <td>
+                            <CategoryModal
+                              color="danger"
+                              title="Delete Category"
+                              buttonLabel="Del"
+                              actionButtonColor="danger"
+                              actionButtonLabel="Delete"
+                              business="del"
+                              categoryId={e.id}
+                              categoryName={e.categoryName}
+                              receiveResult={(result) => this.receiveResult(result)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
                 <div className="flex-fill p-3">
                   {/* <!-- sub category --> */}
@@ -156,12 +198,11 @@ export default class index extends Component {
                       color="success"
                       title="Add Sub Category"
                       buttonLabel="Add"
-                      parentCategoryId={""}
+                      parentCategoryId={this.state.parentCategoryId}
                       actionButtonColor="primary"
                       actionButtonLabel="Save"
-                      business="add"
+                      business="addsub"
                       receiveResult={(result) => this.receiveResult(result)}
-                      parentId={this.state.id}
                     />
                     <Form inline className="float-sm-right">
                       <FormGroup className="mx-sm-3 mb-2">
@@ -172,7 +213,7 @@ export default class index extends Component {
                       </Button>
                     </Form>
                   </div>
-                  <table className="table table-striped">
+                  <Table className="table-striped">
                     <thead>
                       <tr>
                         <th scope="col">#</th>
@@ -182,23 +223,42 @@ export default class index extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <th scope="row">1</th>
-                        <td>Otto</td>
-                        <td>@mdo</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">2</th>
-                        <td>Jacob</td>
-                        <td>Thornton</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">3</th>
-                        <td>Larry</td>
-                        <td>the Bird</td>
-                      </tr>
+                      {this.state.subCategory.map((e, index) => (
+                        <tr key={index}>
+                          <th scope="row">{index + 1}</th>
+                          <td>{e.categoryName}</td>
+                          <td>
+                            <CategoryModal
+                              color="warning"
+                              title="Update Category"
+                              buttonLabel="Update"
+                              actionButtonColor="warning"
+                              actionButtonLabel="Save"
+                              business="update"
+                              categoryId={e.id}
+                              categoryName={e.categoryName}
+                              parentCategoryId={this.state.parentCategoryId}
+                              receiveResult={(result) => this.receiveResult(result)}
+                            />
+                          </td>
+                          <td>
+                            <CategoryModal
+                              color="danger"
+                              title="Delete Category"
+                              buttonLabel="Del"
+                              actionButtonColor="danger"
+                              actionButtonLabel="Delete"
+                              business="del"
+                              categoryId={e.id}
+                              categoryName={e.categoryName}
+                              parentCategoryId={this.state.parentCategoryId}
+                              receiveResult={(result) => this.receiveResult(result)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
-                  </table>
+                  </Table>
                 </div>
               </div>
             </div>
