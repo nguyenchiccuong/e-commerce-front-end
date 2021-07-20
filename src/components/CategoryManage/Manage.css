@@ -1,0 +1,22 @@
+.manage-body-content {
+  height: 175rem;
+}
+
+/* main content */
+.main-content h1 {
+  color: black;
+  text-align: center;
+}
+.main-content h3 {
+  color: black;
+  text-align: left;
+}
+
+/* table */
+td {
+  /* word-wrap: break-word; */
+  max-width: 1rem;
+  /* white-space: nowrap; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -2,6 +2,9 @@ import React, { Component } from "react";
 import Login from "./components/Login";
 import CustomerLogin from "./components/CustomerLogin";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import CategoryManage from "./components/CategoryManage";
+import ProductManage from "./components/ProductManage";
+import CustomerManage from "./components/CustomerManage";
 
 export default class App extends Component {
   render() {
@@ -14,6 +17,15 @@ export default class App extends Component {
             </Route>
             <Route exact path="/signin">
               <CustomerLogin />
+            </Route>
+            <Route exact path="/manage/category">
+              <CategoryManage />
+            </Route>
+            <Route exact path="/manage/product">
+              <ProductManage />
+            </Route>
+            <Route exact path="/manage/customer">
+              <CustomerManage />
             </Route>
             <Route path="/**" render={() => <h2>Not found</h2>}></Route>
           </Switch>
