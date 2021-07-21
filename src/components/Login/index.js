@@ -56,7 +56,9 @@ class index extends Component {
           console.log(error);
           this.setState({
             notiContent:
-              error.response.data.errorCode !== undefined
+              error.response === undefined
+                ? "Fail to sign in"
+                : error.response.data.errorCode !== undefined
                 ? error.response.data.errorCode
                 : error.response.data.message !== undefined
                 ? error.response.data.message
@@ -72,7 +74,9 @@ class index extends Component {
           console.log(error);
           this.setState({
             notiContent:
-              error.response.data.errorCode !== undefined
+              error.response === undefined
+                ? "Fail to sign in"
+                : error.response.data.errorCode !== undefined
                 ? error.response.data.errorCode
                 : error.response.data.message !== undefined
                 ? error.response.data.message

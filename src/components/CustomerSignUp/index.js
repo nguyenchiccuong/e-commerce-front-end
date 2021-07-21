@@ -127,11 +127,13 @@ export default class index extends Component {
       console.log(error);
       this.setState({
         notiContent:
-        error.response.data.errorCode !== undefined
-          ? error.response.data.errorCode
-          : error.response.data.message !== undefined
-          ? error.response.data.message
-          : "Fail to sign up",
+          error.response === undefined
+            ? "Fail to sign up"
+            : error.response.data.errorCode !== undefined
+            ? error.response.data.errorCode
+            : error.response.data.message !== undefined
+            ? error.response.data.message
+            : "Fail to sign up",
       });
       this.toggle();
       return;

@@ -24,6 +24,17 @@ export default class CategoryModal extends Component {
   }
 
   async toggleSave() {
+    if (this.state.categoryName === undefined || this.state.categoryName.trim() === "") {
+      this.setState({
+        message: "Invalid input",
+      });
+      setTimeout(() => {
+        this.setState({
+          message: "",
+        });
+      }, 2000);
+      return;
+    }
     let result = null;
     let category = {};
     category.categoryName = this.state.categoryName;
@@ -31,10 +42,12 @@ export default class CategoryModal extends Component {
       try {
         result = await post(`employee/category/parent`, category);
       } catch (error) {
-        console.log(error);
+        console.log(error.response);
         this.setState({
           message:
-            error.response.data.errorCode !== undefined
+            error.response === undefined
+              ? "Fail to save data"
+              : error.response.data.errorCode !== undefined
               ? error.response.data.errorCode
               : error.response.data.message !== undefined
               ? error.response.data.message
@@ -60,7 +73,9 @@ export default class CategoryModal extends Component {
         console.log(error);
         this.setState({
           message:
-            error.response.data.errorCode !== undefined
+            error.response === undefined
+              ? "Fail to save data"
+              : error.response.data.errorCode !== undefined
               ? error.response.data.errorCode
               : error.response.data.message !== undefined
               ? error.response.data.message
@@ -86,7 +101,9 @@ export default class CategoryModal extends Component {
         console.log(error);
         this.setState({
           message:
-            error.response.data.errorCode !== undefined
+            error.response === undefined
+              ? "Fail to save data"
+              : error.response.data.errorCode !== undefined
               ? error.response.data.errorCode
               : error.response.data.message !== undefined
               ? error.response.data.message
@@ -110,11 +127,13 @@ export default class CategoryModal extends Component {
         console.log(error);
         this.setState({
           message:
-            error.response.data.errorCode !== undefined
+            error.response === undefined
+              ? "Fail to delete data"
+              : error.response.data.errorCode !== undefined
               ? error.response.data.errorCode
               : error.response.data.message !== undefined
               ? error.response.data.message
-              : "Fail to save data",
+              : "Fail to delete data",
         });
         setTimeout(() => {
           this.setState({

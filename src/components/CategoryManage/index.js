@@ -38,7 +38,9 @@ export default class index extends Component {
       console.log(error);
       this.setState({
         notiContent:
-          error.response.data.errorCode !== undefined
+          error.response === undefined
+            ? "Fail to get data"
+            : error.response.data.errorCode !== undefined
             ? error.response.data.errorCode
             : error.response.data.message !== undefined
             ? error.response.data.message
@@ -66,6 +68,8 @@ export default class index extends Component {
         if (this.state.parentCategory.length > 0) {
           if (finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY") {
             this.setState({ parentCategoryId: finalResult.data.data.id, categoryName: finalResult.data.data.categoryName });
+          } else if (finalResult.data.successCode === "SUCCESS_UPDATE_CATEGORY") {
+            this.setState({ categoryName: this.state.parentCategory.find((e) => e.id === this.state.parentCategoryId).categoryName });
           }
 
           let parentCategoryId = finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY" ? finalResult.data.data.id : this.state.parentCategoryId;
@@ -85,7 +89,9 @@ export default class index extends Component {
             console.log(error);
             this.setState({
               notiContent:
-                error.response.data.errorCode !== undefined
+                error.response === undefined
+                  ? "Fail to get data"
+                  : error.response.data.errorCode !== undefined
                   ? error.response.data.errorCode
                   : error.response.data.message !== undefined
                   ? error.response.data.message
@@ -138,7 +144,9 @@ export default class index extends Component {
       console.log(error);
       this.setState({
         notiContent:
-          error.response.data.errorCode !== undefined
+          error.response === undefined
+            ? "Fail to get data"
+            : error.response.data.errorCode !== undefined
             ? error.response.data.errorCode
             : error.response.data.message !== undefined
             ? error.response.data.message
@@ -173,7 +181,9 @@ export default class index extends Component {
             console.log(error);
             this.setState({
               notiContent:
-                error.response.data.errorCode !== undefined
+                error.response === undefined
+                  ? "Fail to get data"
+                  : error.response.data.errorCode !== undefined
                   ? error.response.data.errorCode
                   : error.response.data.message !== undefined
                   ? error.response.data.message
@@ -182,6 +192,87 @@ export default class index extends Component {
             this.toggle();
             return;
           }
+        }
+      }
+    );
+  }
+
+  async handleParentSearch(e) {
+    e.preventDefault();
+    let result = null;
+    try {
+      result = await getPublic("public/category/parent");
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent:
+          error.response === undefined
+            ? "Fail to get data"
+            : error.response.data.errorCode !== undefined
+            ? error.response.data.errorCode
+            : error.response.data.message !== undefined
+            ? error.response.data.message
+            : "Fail to get data",
+      });
+      this.toggle();
+      return;
+    }
+    this.setState(
+      {
+        parentCategory: result.data.data.sort((a, b) => {
+          var nameA = a.categoryName.toUpperCase();
+          var nameB = b.categoryName.toUpperCase();
+          return nameA.localeCompare(nameB);
+        }),
+      },
+      () => {
+        if (e.target.inputSearchParent.value.trim() !== "") {
+          let searchResult = this.state.parentCategory.filter((element) =>
+            element.categoryName.toUpperCase().includes(e.target.inputSearchParent.value.toUpperCase())
+          );
+          this.setState({ parentCategory: searchResult });
+        }
+      }
+    );
+  }
+
+  async handleChildSearch(e) {
+    e.preventDefault();
+    let result = null;
+    try {
+      result = await getPublic(`public/category/sub/${this.state.parentCategoryId}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent:
+          error.response === undefined
+            ? "Fail to get data"
+            : error.response.data.errorCode !== undefined
+            ? error.response.data.errorCode
+            : error.response.data.message !== undefined
+            ? error.response.data.message
+            : "Fail to get data",
+      });
+      this.toggle();
+      return;
+    }
+    this.setState(
+      {
+        subCategory: result.data.data.sort((a, b) => {
+          var nameA = a.categoryName.toUpperCase();
+          var nameB = b.categoryName.toUpperCase();
+          return nameA.localeCompare(nameB);
+        }),
+      },
+      () => {
+        console.log(e.target.inputSearchSub.value.trim());
+        if (e.target.inputSearchSub.value.trim() !== "") {
+          let searchResult = this.state.subCategory.filter((element) =>
+            element.categoryName.toUpperCase().includes(e.target.inputSearchSub.value.toUpperCase())
+          );
+          console.log(this.state.subCategory);
+          console.log(searchResult);
+          this.setState({ subCategory: searchResult });
         }
       }
     );
@@ -212,7 +303,7 @@ export default class index extends Component {
                       business="add"
                       receiveResult={(result) => this.receiveResult(result)}
                     />
-                    <Form inline className="float-sm-right">
+                    <Form inline className="float-sm-right" onSubmit={(e) => this.handleParentSearch(e)}>
                       <FormGroup className="mx-sm-3 mb-2">
                         <Input type="text" className="form-control" id="inputSearchParent" placeholder="Parent category" name="inputSearchParent" />
                       </FormGroup>
@@ -281,7 +372,7 @@ export default class index extends Component {
                       business="addsub"
                       receiveResult={(result) => this.receiveResult(result)}
                     />
-                    <Form inline className="float-sm-right">
+                    <Form inline className="float-sm-right" onSubmit={(e) => this.handleChildSearch(e)}>
                       <FormGroup className="mx-sm-3 mb-2">
                         <Input type="text" className="form-control" id="inputSearchSub" placeholder="Sub category" name="inputSearchSub" />
                       </FormGroup>
@@ -343,7 +434,7 @@ export default class index extends Component {
         </section>
         <Footer />
         {/* noti modal */}
-        <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
+        <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className} backdrop={["static"]} keyboard={false}>
           <ModalHeader toggle={this.toggle}>Alert</ModalHeader>
           <ModalBody>{this.state.notiContent}</ModalBody>
           <ModalFooter>
