@@ -345,7 +345,9 @@ export default class ProductModal extends Component {
                         Choose here
                       </option>
                       {this.state.parentCategory.map((e) => (
-                        <option value={e.id}>{e.categoryName}</option>
+                        <option key={e.categoryName} value={e.id}>
+                          {e.categoryName}
+                        </option>
                       ))}
                     </Input>
                   </FormGroup>
@@ -369,7 +371,9 @@ export default class ProductModal extends Component {
                         Choose here
                       </option>
                       {this.state.subCategory.map((e) => (
-                        <option value={e.id}>{e.categoryName}</option>
+                        <option key={e.categoryName} value={e.id}>
+                          {e.categoryName}
+                        </option>
                       ))}
                     </Input>
                   </FormGroup>
@@ -389,7 +393,9 @@ export default class ProductModal extends Component {
                         Choose here
                       </option>
                       {this.state.brand.map((e) => (
-                        <option value={e.id}>{e.brandName}</option>
+                        <option key={e.brandName} value={e.id}>
+                          {e.brandName}
+                        </option>
                       ))}
                     </Input>
                   </FormGroup>
@@ -407,7 +413,9 @@ export default class ProductModal extends Component {
                         Choose here
                       </option>
                       {this.state.origin.map((e) => (
-                        <option value={e.id}>{e.country}</option>
+                        <option key={e.country} value={e.id}>
+                          {e.country}
+                        </option>
                       ))}
                     </Input>
                   </FormGroup>
@@ -603,7 +611,7 @@ export default class ProductModal extends Component {
               </thead>
               <tbody>
                 {this.state.productDetail.map((e, index) => (
-                  <tr>
+                  <tr key={e.id + e.color + e.price + e.quantity + index}>
                     <th scope="row">{e.id}</th>
                     <td>
                       <Input

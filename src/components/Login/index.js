@@ -159,10 +159,10 @@ class index extends Component {
   interceptor() {
     if (this.state.signInType === "em" && this.state.em !== "") {
       // redirect to emp page
-      return <Redirect to="/employee/sigbbgnin" />;
+      return <Redirect to="/manage/product" />;
     } else if (this.state.signInType === "cus" && this.state.cus !== "") {
       // redirect to pr page
-      return <Redirect to="/product/sigbbgnin" />;
+      return <Redirect to="/home" />;
     }
   }
 

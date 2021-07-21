@@ -24,10 +24,10 @@ export default class index extends Component {
   render() {
     return (
       <Pagination aria-label="Page navigation example" listClassName="justify-content-center">
-        {this.state.arrayNumOfPage.map((element) => {
+        {this.state.arrayNumOfPage.map((element, index) => {
           if (this.state.numOfPage === 1) {
             return (
-              <PaginationItem active>
+              <PaginationItem active key={index}>
                 <PaginationLink>1</PaginationLink>
               </PaginationItem>
             );
@@ -45,7 +45,7 @@ export default class index extends Component {
             if (element === this.state.activePage) {
               if (element === 1) {
                 return (
-                  <div className="d-flex flex-row">
+                  <div className="d-flex flex-row" key={index}>
                     <PaginationItem disabled>
                       <PaginationLink first />
                     </PaginationItem>
@@ -59,7 +59,7 @@ export default class index extends Component {
                 );
               } else if (element === this.state.numOfPage) {
                 return (
-                  <div className="d-flex flex-row">
+                  <div className="d-flex flex-row" key={index}>
                     <PaginationItem active>
                       <PaginationLink>{this.state.numOfPage}</PaginationLink>
                     </PaginationItem>
@@ -73,7 +73,7 @@ export default class index extends Component {
                 );
               } else {
                 return (
-                  <PaginationItem active>
+                  <PaginationItem active key={index}>
                     <PaginationLink>{element}</PaginationLink>
                   </PaginationItem>
                 );
@@ -83,7 +83,7 @@ export default class index extends Component {
               if (element === 1) {
                 if (distance >= distanceMin && distance <= distanceMax)
                   return (
-                    <div className="d-flex flex-row">
+                    <div className="d-flex flex-row" key={index}>
                       <PaginationItem>
                         <PaginationLink first onClick={() => this.handlePagechange(1)} />
                       </PaginationItem>
@@ -97,7 +97,7 @@ export default class index extends Component {
                   );
                 else
                   return (
-                    <div className="d-flex flex-row">
+                    <div className="d-flex flex-row" key={index}>
                       <PaginationItem>
                         <PaginationLink first onClick={() => this.handlePagechange(1)} />
                       </PaginationItem>
@@ -109,7 +109,7 @@ export default class index extends Component {
               } else if (element === this.state.numOfPage) {
                 if (distance >= distanceMin && distance <= distanceMax)
                   return (
-                    <div className="d-flex flex-row">
+                    <div className="d-flex flex-row" key={index}>
                       <PaginationItem>
                         <PaginationLink onClick={() => this.handlePagechange(this.state.numOfPage)}>{this.state.numOfPage}</PaginationLink>
                       </PaginationItem>
@@ -123,7 +123,7 @@ export default class index extends Component {
                   );
                 else
                   return (
-                    <div className="d-flex flex-row">
+                    <div className="d-flex flex-row" key={index}>
                       <PaginationItem>
                         <PaginationLink next onClick={() => this.handlePagechange(this.state.activePage + 1)} />
                       </PaginationItem>
@@ -134,7 +134,7 @@ export default class index extends Component {
                   );
               } else if (distance >= distanceMin && distance <= distanceMax) {
                 return (
-                  <PaginationItem>
+                  <PaginationItem key={index}>
                     <PaginationLink onClick={() => this.handlePagechange(element)}>{element}</PaginationLink>
                   </PaginationItem>
                 );

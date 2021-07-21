@@ -17,8 +17,8 @@ export default class index extends Component {
       notiContent: "",
       numOfPage: 15,
       activePage: 1,
+      productList: [],
     };
-
     this.toggle = this.toggle.bind(this);
   }
 
@@ -31,6 +31,32 @@ export default class index extends Component {
   pageReturn(result) {
     this.setState({
       activePage: result,
+    });
+  }
+
+  receiveResult(result) {}
+
+  async componentDidMount() {
+    let result = null;
+    try {
+      result = await getPublic("public/product?page=0&items=2");
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent:
+          error.response === undefined
+            ? "Fail to get data"
+            : error.response.data.errorCode !== undefined
+            ? error.response.data.errorCode
+            : error.response.data.message !== undefined
+            ? error.response.data.message
+            : "Fail to get data",
+      });
+      this.toggle();
+      return;
+    }
+    this.setState({
+      productList: result.data.data,
     });
   }
 
@@ -74,36 +100,40 @@ export default class index extends Component {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th scope="row">1</th>
-                    <td>Ottosssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">2</th>
-                    <td>Ottosssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">3</th>
-                    <td>Ottosssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                    <td>dvd</td>
-                  </tr>
+                  {this.state.productList.map((e, index) => (
+                    <tr key={e.productName + e.category.CategoryName + index}>
+                      <th scope="row">{index + 1}</th>
+                      <td>{e.productName}</td>
+                      <td>{e.category.CategoryName}</td>
+                      <td>{e.model}</td>
+                      <td>{e.brand.brandName}</td>
+                      <td>{e.origin.country}</td>
+                      <td>
+                        <ProductModal
+                          productId={`${e.id}`}
+                          color="info"
+                          title="Update product"
+                          buttonLabel="Update"
+                          actionButtonColor="primary"
+                          actionButtonLabel="Save"
+                          business="update"
+                          receiveResult={(result) => this.receiveResult(result)}
+                        />
+                      </td>
+                      <td>
+                        <ProductModal
+                          productId={`${e.id}`}
+                          color="danger"
+                          title="Delete product"
+                          buttonLabel="Add"
+                          actionButtonColor="danger"
+                          actionButtonLabel="delete"
+                          business="del"
+                          receiveResult={(result) => this.receiveResult(result)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </Table>
               {/* <!-- table --> */}
