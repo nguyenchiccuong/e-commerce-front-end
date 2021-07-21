@@ -21,6 +21,9 @@ export default class CategoryModal extends Component {
     this.setState({
       modal: !this.state.modal,
     });
+    this.setState({
+      categoryName: this.props.categoryName,
+    });
   }
 
   async toggleSave() {
