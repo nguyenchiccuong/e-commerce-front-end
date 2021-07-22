@@ -1,8 +1,14 @@
 import axios from "axios";
 const endpoint = "http://localhost:9995/my-shop/api/v1";
+const endpointDoc = "http://localhost:9998";
 
-const tokenEm = getCookie("em") !== "" ? JSON.parse(getCookie("em")).token : "";
-const tokenCus = getCookie("cus") !== "" ? JSON.parse(getCookie("cus")).token : "";
+let tokenEm = getCookie("em") !== "" ? JSON.parse(getCookie("em")).token : "";
+let tokenCus = getCookie("cus") !== "" ? JSON.parse(getCookie("cus")).token : "";
+
+setInterval(() => {
+  tokenEm = getCookie("em") !== "" ? JSON.parse(getCookie("em")).token : "";
+  tokenCus = getCookie("cus") !== "" ? JSON.parse(getCookie("cus")).token : "";
+}, 5000);
 
 function getCookie(cname) {
   let name = cname + "=";
@@ -139,6 +145,18 @@ export function delCus(url) {
       Authorization: `Bearer ${tokenCus}`,
       "Content-Type": "application/json",
     },
+  };
+  return axios(config);
+}
+
+export function postUpload(url, body) {
+  var config = {
+    method: "post",
+    url: `${endpointDoc}/${url}`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
   };
   return axios(config);
 }

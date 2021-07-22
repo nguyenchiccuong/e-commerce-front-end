@@ -1,25 +1,26 @@
 import React, { Component } from "react";
-import "./Login.css";
-import { Navbar, NavbarBrand, Button, Form, Label, Input, CardImg, FormGroup } from "reactstrap";
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import logo from "../../img/logo.png";
+import { Navbar, NavbarBrand, Button, Form, Label, Input, CardImg, FormGroup, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import { Redirect } from "react-router-dom";
-import checkPattern from "../../util/filter";
-import { postPublic } from "../../httpHelper";
+import "./Login.css";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import logo from "../../img/logo.png";
+import checkPattern from "../../util/filter";
+import { postPublic } from "../../httpHelper";
+import {
+  employeeSignInFailException,
+  customerSignInFailException,
+  usernamePasswordWrongException,
+  serverErrorExceptionException,
+  invalidUsernameException,
+  nullUsernameException,
+  invalidPasswordException,
+  nullPasswordException,
+} from "../../exception/UserException";
 
 class index extends Component {
   static propTypes = {
     cookies: instanceOf(Cookies).isRequired,
-  };
-
-  state = {
-    signInType: this.props.signInType,
-    modal: false,
-    notiContent: "",
-    cus: this.props.cookies.get("cus") || "",
-    em: this.props.cookies.get("em") || "",
   };
 
   constructor(props) {
@@ -35,7 +36,38 @@ class index extends Component {
     this.toggle = this.toggle.bind(this);
   }
 
-  componentDidMount() {}
+  customerSignInResult(result) {
+    if (result.data.successCode === "SUCCESS_CUSTOMER_LOGIN" && result.data.data.role === "ROLE_CUSTOMER") {
+      const { cookies } = this.props;
+      cookies.set("cus", JSON.stringify(result.data.data), { expires: new Date(new Date().valueOf() + 1000 * 3600 * 24), path: "/" });
+      this.setState({ cus: cookies.get("cus") });
+      localStorage.setItem("cus", JSON.stringify(result.data.data));
+      //redirect to product page or review page page
+    } else {
+      this.setState({
+        notiContent: usernamePasswordWrongException(),
+      });
+      this.toggle();
+    }
+  }
+
+  employeeSignInResult(result) {
+    if (
+      result.data.successCode === "SUCCESS_EMPLOYEE_LOGIN" &&
+      (result.data.data.role === "ROLE_EMPLOYEE" || result.data.data.role === "ROLE_MANAGER" || result.data.data.role === "ROLE_ADMIN")
+    ) {
+      const { cookies } = this.props;
+      cookies.set("em", JSON.stringify(result.data.data), { expires: new Date(new Date().valueOf() + 1000 * 3600 * 24), path: "/" });
+      this.setState({ em: cookies.get("em") });
+      localStorage.setItem("em", JSON.stringify(result.data.data));
+      //redirect to manage page
+    } else {
+      this.setState({
+        notiContent: usernamePasswordWrongException(),
+      });
+      this.toggle();
+    }
+  }
 
   async handleSignIn(e) {
     e.preventDefault();
@@ -55,14 +87,7 @@ class index extends Component {
         } catch (error) {
           console.log(error);
           this.setState({
-            notiContent:
-              error.response === undefined
-                ? "Fail to sign in"
-                : error.response.data.errorCode !== undefined
-                ? error.response.data.errorCode
-                : error.response.data.message !== undefined
-                ? error.response.data.message
-                : "Username, password wrong",
+            notiContent: employeeSignInFailException(error),
           });
           this.toggle();
           return;
@@ -73,14 +98,7 @@ class index extends Component {
         } catch (error) {
           console.log(error);
           this.setState({
-            notiContent:
-              error.response === undefined
-                ? "Fail to sign in"
-                : error.response.data.errorCode !== undefined
-                ? error.response.data.errorCode
-                : error.response.data.message !== undefined
-                ? error.response.data.message
-                : "Username, password wrong",
+            notiContent: customerSignInFailException(error),
           });
           this.toggle();
           return;
@@ -88,62 +106,37 @@ class index extends Component {
       }
       if (result.status === 200) {
         if (this.state.signInType === "em") {
-          if (
-            result.data.successCode === "SUCCESS_EMPLOYEE_LOGIN" &&
-            (result.data.data.role === "ROLE_EMPLOYEE" || result.data.data.role === "ROLE_MANAGER" || result.data.data.role === "ROLE_ADMIN")
-          ) {
-            const { cookies } = this.props;
-            cookies.set("em", JSON.stringify(result.data.data), { expires: new Date(new Date().valueOf() + 1000 * 3600 * 24), path: "/" });
-            this.setState({ em: cookies.get("em") });
-            localStorage.setItem("em", JSON.stringify(result.data.data));
-            //redirect to manage page
-          } else {
-            this.setState({
-              notiContent: "Username, password wrong",
-            });
-            this.toggle();
-          }
+          this.employeeSignInResult(result);
         } else {
-          if (result.data.successCode === "SUCCESS_CUSTOMER_LOGIN" && result.data.data.role === "ROLE_CUSTOMER") {
-            const { cookies } = this.props;
-            cookies.set("cus", JSON.stringify(result.data.data), { expires: new Date(new Date().valueOf() + 1000 * 3600 * 24), path: "/" });
-            this.setState({ cus: cookies.get("cus") });
-            localStorage.setItem("cus", JSON.stringify(result.data.data));
-            //redirect to product page or review page page
-          } else {
-            this.setState({
-              notiContent: "Username, password wrong",
-            });
-            this.toggle();
-          }
+          this.customerSignInResult(result);
         }
       } else {
         this.setState({
-          notiContent: "Server error, try again later!",
+          notiContent: serverErrorExceptionException(),
         });
         this.toggle();
       }
     } else {
       if (pass.length === 0) {
         this.setState({
-          notiContent: "Password null",
+          notiContent: nullPasswordException(),
         });
         this.toggle();
       } else if (patternPass.test(pass) === false) {
         this.setState({
-          notiContent: "Password invalid",
+          notiContent: invalidPasswordException(),
         });
         this.toggle();
       }
 
       if (username.length === 0) {
         this.setState({
-          notiContent: "Username null",
+          notiContent: nullUsernameException(),
         });
         this.toggle();
       } else if (patternID.test(username) === false) {
         this.setState({
-          notiContent: "Username invalid",
+          notiContent: invalidUsernameException(),
         });
         this.toggle();
       }

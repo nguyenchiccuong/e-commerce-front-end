@@ -1,8 +1,16 @@
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { Col, Form, FormGroup, Label, Input, Table } from "reactstrap";
-import { Row } from "reactstrap";
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Form, FormGroup, Label, Input, Table, Row } from "reactstrap";
 import React, { Component } from "react";
-import { post, put, del, getPublic } from "../../httpHelper";
+import { post, put, del, getPublic, postUpload } from "../../httpHelper";
+import {
+  getProductFailException,
+  saveProductFailException,
+  updateProductFailException,
+  deleteProductFailException,
+  saveImgFailException,
+} from "../../exception/ProductExeption";
+import { getParentCategoryFailException, getSubCategoryFailException } from "../../exception/CategoryException";
+import { getBrandFailException } from "../../exception/BrandException";
+import { getOriginFailException } from "../../exception/OriginException";
 
 export default class ProductModal extends Component {
   constructor(props) {
@@ -32,26 +40,188 @@ export default class ProductModal extends Component {
       origin: [],
       brand: [],
       productDetail: [],
+      flag: -1,
     };
 
     this.toggle = this.toggle.bind(this);
     this.toggleSave = this.toggleSave.bind(this);
   }
 
+  clearMessage() {
+    setTimeout(() => {
+      this.setState({
+        message: "",
+      });
+    }, 2000);
+  }
+
   toggle() {
+    this.setState(
+      {
+        modal: !this.state.modal,
+      },
+      () => {
+        if (this.state.modal === false) {
+          this.setState({
+            flag: Math.random() + "A",
+            img: [],
+          });
+          this.componentDidMount();
+        }
+      }
+    );
+  }
+
+  prepareProduct() {
+    let product = {};
+    this.state.productName === "" ? (product.productName = null) : (product.productName = this.state.productName);
+    this.state.material === "" ? (product.material = null) : (product.material = this.state.material);
+    this.state.model === "" ? (product.model = null) : (product.model = this.state.model);
+    this.state.size === "" ? (product.size = null) : (product.size = this.state.size);
+    this.state.standard === "" ? (product.standard = null) : (product.standard = this.state.standard);
+    this.props.productId === undefined ? (product.id = null) : (product.id = parseInt(this.props.productId));
+    this.state.subCategoryId === "" ? (product.categoryId = null) : (product.categoryId = parseInt(this.state.subCategoryId));
+    this.state.brandId === "" ? (product.brandId = null) : (product.brandId = parseInt(this.state.brandId));
+    this.state.originId === "" ? (product.originId = null) : (product.originId = parseInt(this.state.originId));
+    this.state.weight === "" ? (product.weight = null) : (product.weight = parseFloat(this.state.weight));
+    this.state.originId === "" ? (product.originId = null) : (product.originId = parseInt(this.state.originId));
+    this.state.warranty === "" ? (product.warranty = null) : (product.warranty = parseInt(this.state.warranty));
+    this.state.img.length === 0 ? (product.img = null) : (product.img = this.state.img.length);
+    product.productDetails = JSON.parse(JSON.stringify(this.state)).productDetail;
+    product.productDetails.forEach((element) => {
+      element.quantity === "" ? (element.quantity = null) : (element.quantity = parseInt(element.quantity));
+      element.price === "" ? (element.price = null) : (element.price = parseInt(element.price));
+      element.id === "" ? (element.id = null) : (element.id = parseInt(element.id));
+    });
+    return product;
+  }
+
+  async saveProduct(product) {
+    let result = null;
+    try {
+      result = await post(`employee/product`, product);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        message: saveProductFailException(error),
+      });
+      this.clearMessage();
+      return;
+    }
+    Array.from(this.state.img).forEach((e, index) => {
+      var data = new FormData();
+      data.append("file", e);
+      data.append("name", `${result.data.data.id}-${index + 1}`);
+      data.append("dir", "product");
+      try {
+        postUpload(`upload/img`, data);
+      } catch (error) {
+        console.log(error);
+        this.setState({
+          message: saveImgFailException(error),
+        });
+        this.clearMessage();
+        return;
+      }
+    });
+    this.props.receiveResult(result);
     this.setState({
       modal: !this.state.modal,
     });
-    this.componentDidMount();
   }
 
-  async toggleSave() {}
+  async updateProduct(product) {
+    let result = null;
+    try {
+      result = await put(`employee/product`, product);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        message: updateProductFailException(error),
+      });
+      this.clearMessage();
+      return;
+    }
+    this.props.receiveResult(result);
+    this.toggle();
+  }
+
+  async deleteProduct(product) {
+    let result = null;
+    try {
+      result = await del(`employee/product/${this.props.productId}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        message: deleteProductFailException(error),
+      });
+      this.clearMessage();
+      return;
+    }
+    this.props.receiveResult(result);
+    this.setState({
+      modal: !this.state.modal,
+    });
+  }
+
+  async toggleSave() {
+    let result = null;
+    let product = this.prepareProduct();
+
+    if (this.props.business === "add") {
+      this.saveProduct(product);
+    } else if (this.props.business === "update") {
+      this.updateProduct(product);
+    } else if (this.props.business === "del") {
+      this.deleteProduct(product);
+    }
+  }
 
   handleInsertRow() {
     let recentProductDetail = JSON.parse(JSON.stringify(this.state.productDetail));
     let productDetailObject = { id: "", color: "", price: "", quantity: "" };
     recentProductDetail.push(productDetailObject);
     this.setState({ productDetail: recentProductDetail });
+  }
+
+  setSubCategory(subCategory) {
+    this.setState({
+      subCategory: subCategory.sort((a, b) => {
+        var nameA = a.categoryName.toUpperCase();
+        var nameB = b.categoryName.toUpperCase();
+        return nameA.localeCompare(nameB);
+      }),
+    });
+  }
+
+  setParentCategory(parentCategory) {
+    this.setState({
+      parentCategory: parentCategory.sort((a, b) => {
+        var nameA = a.categoryName.toUpperCase();
+        var nameB = b.categoryName.toUpperCase();
+        return nameA.localeCompare(nameB);
+      }),
+    });
+  }
+
+  setOrigin(origin) {
+    this.setState({
+      origin: origin.sort((a, b) => {
+        var nameA = a.country.toUpperCase();
+        var nameB = b.country.toUpperCase();
+        return nameA.localeCompare(nameB);
+      }),
+    });
+  }
+
+  setBrand(brand) {
+    this.setState({
+      brand: brand.sort((a, b) => {
+        var nameA = a.brandName.toUpperCase();
+        var nameB = b.brandName.toUpperCase();
+        return nameA.localeCompare(nameB);
+      }),
+    });
   }
 
   async handleFieldChange(e, key) {
@@ -66,29 +236,12 @@ export default class ProductModal extends Component {
       } catch (error) {
         console.log(error);
         this.setState({
-          message:
-            error.response === undefined
-              ? "Fail to get data"
-              : error.response.data.errorCode !== undefined
-              ? error.response.data.errorCode
-              : error.response.data.message !== undefined
-              ? error.response.data.message
-              : "Fail to get data",
+          message: getParentCategoryFailException(error),
         });
-        setTimeout(() => {
-          this.setState({
-            message: "",
-          });
-        }, 2000);
+        this.clearMessage();
         return;
       }
-      this.setState({
-        subCategory: subCategoryResult.data.data.sort((a, b) => {
-          var nameA = a.categoryName.toUpperCase();
-          var nameB = b.categoryName.toUpperCase();
-          return nameA.localeCompare(nameB);
-        }),
-      });
+      this.setSubCategory(subCategoryResult.data.data);
     } else if (key === "weight" || key === "warranty") {
       if (isNaN(e.target.value) || e.target.value.trim() === "") {
         this.setState({ [key]: this.state[key] });
@@ -109,9 +262,7 @@ export default class ProductModal extends Component {
     } else {
       recentProductDetail[index][key] = e.target.value;
     }
-    this.setState({ productDetail: recentProductDetail }, () => {
-      console.log(this.state);
-    });
+    this.setState({ productDetail: recentProductDetail }, () => {});
   }
 
   handleDeleteRow(index) {
@@ -127,87 +278,39 @@ export default class ProductModal extends Component {
     } catch (error) {
       console.log(error);
       this.setState({
-        message:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        message: getParentCategoryFailException(error),
       });
-      setTimeout(() => {
-        this.setState({
-          message: "",
-        });
-      }, 2000);
+      this.clearMessage();
       return;
     }
-    this.setState({
-      parentCategory: parentCategoryResult.data.data.sort((a, b) => {
-        var nameA = a.categoryName.toUpperCase();
-        var nameB = b.categoryName.toUpperCase();
-        return nameA.localeCompare(nameB);
-      }),
-    });
+    this.setParentCategory(parentCategoryResult.data.data);
+
     let originResult = null;
     try {
       originResult = await getPublic("public/origin");
     } catch (error) {
       console.log(error);
       this.setState({
-        message:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        message: getOriginFailException(error),
       });
-      setTimeout(() => {
-        this.setState({
-          message: "",
-        });
-      }, 2000);
+      this.clearMessage();
       return;
     }
-    this.setState({
-      origin: originResult.data.data.sort((a, b) => {
-        var nameA = a.country.toUpperCase();
-        var nameB = b.country.toUpperCase();
-        return nameA.localeCompare(nameB);
-      }),
-    });
+    this.setOrigin(originResult.data.data);
+
     let brandResult = null;
     try {
       brandResult = await getPublic("public/brand");
     } catch (error) {
       console.log(error);
       this.setState({
-        message:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        message: getBrandFailException(error),
       });
-      setTimeout(() => {
-        this.setState({
-          message: "",
-        });
-      }, 2000);
+      this.clearMessage();
       return;
     }
-    this.setState({
-      brand: brandResult.data.data.sort((a, b) => {
-        var nameA = a.brandName.toUpperCase();
-        var nameB = b.brandName.toUpperCase();
-        return nameA.localeCompare(nameB);
-      }),
-    });
+    this.setBrand(brandResult.data.data);
+
     if (this.props.productId !== undefined && !isNaN(this.props.productId) && this.props.productId.trim() !== "") {
       let productResult = null;
       try {
@@ -215,20 +318,9 @@ export default class ProductModal extends Component {
       } catch (error) {
         console.log(error);
         this.setState({
-          message:
-            error.response === undefined
-              ? "Fail to get data"
-              : error.response.data.errorCode !== undefined
-              ? error.response.data.errorCode
-              : error.response.data.message !== undefined
-              ? error.response.data.message
-              : "Fail to get data",
+          message: getProductFailException(error),
         });
-        setTimeout(() => {
-          this.setState({
-            message: "",
-          });
-        }, 2000);
+        this.clearMessage();
         return;
       }
 
@@ -257,29 +349,12 @@ export default class ProductModal extends Component {
       } catch (error) {
         console.log(error);
         this.setState({
-          message:
-            error.response === undefined
-              ? "Fail to get data"
-              : error.response.data.errorCode !== undefined
-              ? error.response.data.errorCode
-              : error.response.data.message !== undefined
-              ? error.response.data.message
-              : "Fail to get data",
+          message: getSubCategoryFailException(error),
         });
-        setTimeout(() => {
-          this.setState({
-            message: "",
-          });
-        }, 2000);
+        this.clearMessage();
         return;
       }
-      this.setState({
-        subCategory: subCategoryResult.data.data.sort((a, b) => {
-          var nameA = a.categoryName.toUpperCase();
-          var nameB = b.categoryName.toUpperCase();
-          return nameA.localeCompare(nameB);
-        }),
-      });
+      this.setSubCategory(subCategoryResult.data.data);
     }
   }
 
@@ -301,7 +376,7 @@ export default class ProductModal extends Component {
                       <Label for="productId" className="mr-1">
                         id
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input type="text" name="productId" id="productId" placeholder="Product id" disabled value={this.state.productId} />
                   </FormGroup>
@@ -312,7 +387,7 @@ export default class ProductModal extends Component {
                       <Label for="productName" className="mr-1">
                         Product name
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">(*){this.state.message}</h5>
                     </Row>
                     <Input
                       type="text"
@@ -332,7 +407,7 @@ export default class ProductModal extends Component {
                       <Label for="parentCategory" className="mr-1">
                         Category
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">(*){this.state.message}</h5>
                     </Row>
                     <Input
                       type="select"
@@ -358,7 +433,7 @@ export default class ProductModal extends Component {
                       <Label for="subCategory" className="mr-1">
                         Sub categgory
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">(*){this.state.message}</h5>
                     </Row>
                     <Input
                       type="select"
@@ -386,7 +461,7 @@ export default class ProductModal extends Component {
                       <Label for="brand" className="mr-1">
                         Brand
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">(*){this.state.message}</h5>
                     </Row>
                     <Input type="select" name="brand" id="brand" value={this.state.brandId} onChange={(e) => this.handleFieldChange(e, "brandId")}>
                       <option value="" disabled hidden>
@@ -406,7 +481,7 @@ export default class ProductModal extends Component {
                       <Label for="origin" className="mr-1">
                         Origin
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">(*){this.state.message}</h5>
                     </Row>
                     <Input type="select" name="origin" id="origin" value={this.state.originId} onChange={(e) => this.handleFieldChange(e, "originId")}>
                       <option value="" disabled hidden>
@@ -428,7 +503,7 @@ export default class ProductModal extends Component {
                       <Label for="model" className="mr-1">
                         Model
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input
                       type="text"
@@ -446,7 +521,7 @@ export default class ProductModal extends Component {
                       <Label for="material" className="mr-1">
                         Material
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input
                       type="text"
@@ -466,7 +541,7 @@ export default class ProductModal extends Component {
                       <Label for="weight" className="mr-1">
                         Weight (kg)
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input
                       type="number"
@@ -486,7 +561,7 @@ export default class ProductModal extends Component {
                       <Label for="size" className="mr-1">
                         Size
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input type="text" name="size" id="size" placeholder="Size" value={this.state.size} onChange={(e) => this.handleFieldChange(e, "size")} />
                   </FormGroup>
@@ -497,7 +572,7 @@ export default class ProductModal extends Component {
                       <Label for="standard" className="mr-1">
                         Standard
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input
                       type="text"
@@ -517,7 +592,7 @@ export default class ProductModal extends Component {
                       <Label for="warranty" className="mr-1">
                         Warranty (day)
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input
                       type="number"
@@ -537,9 +612,10 @@ export default class ProductModal extends Component {
                       <Label for="image" className="mr-1">
                         Image
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input
+                      key={this.state.flag}
                       type="file"
                       name="image"
                       id="image"
@@ -558,7 +634,7 @@ export default class ProductModal extends Component {
                       <Label for="createDate" className="mr-1">
                         Create date
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input type="text" name="createDate" id="createDate" placeholder="Create date" disabled value={this.state.createDate} />
                   </FormGroup>
@@ -569,7 +645,7 @@ export default class ProductModal extends Component {
                       <Label for="updateDate" className="mr-1">
                         Update date
                       </Label>
-                      <h5 className="text-danger"></h5>
+                      <h5 className="text-danger">{this.state.message}</h5>
                     </Row>
                     <Input type="text" name="updateDate" id="updateDate" placeholder="Update date" disabled value={this.state.updateDate} />
                   </FormGroup>
@@ -580,7 +656,7 @@ export default class ProductModal extends Component {
                   <Label for="description" className="mr-1">
                     Description
                   </Label>
-                  <h5 className="text-danger"></h5>
+                  <h5 className="text-danger">{this.state.message}</h5>
                 </Row>
                 <Input
                   type="textarea"
@@ -594,7 +670,7 @@ export default class ProductModal extends Component {
             </Form>
 
             <h3 className="text-center">Product Details</h3>
-
+            <h5 className="text-danger">(*){this.state.message}</h5>
             <Table>
               <thead>
                 <tr>
@@ -611,7 +687,7 @@ export default class ProductModal extends Component {
               </thead>
               <tbody>
                 {this.state.productDetail.map((e, index) => (
-                  <tr key={e.id + e.color + e.price + e.quantity + index}>
+                  <tr key={e.id + index}>
                     <th scope="row">{e.id}</th>
                     <td>
                       <Input

@@ -16,7 +16,9 @@ export default class index extends Component {
             <div className="flex-fill side-bar px-auto">
               <SideBar />
             </div>
-            <div className="w-75 flex-fill main-content overflow-auto"> </div>
+            <div className="w-75 flex-fill main-content overflow-auto"> 
+            
+            </div>
           </div>
         </section>
         <Footer />

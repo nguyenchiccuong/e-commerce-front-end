@@ -1,13 +1,12 @@
 import React, { Component } from "react";
+import { Button, Input, FormGroup, Form, Modal, ModalHeader, ModalBody, ModalFooter, Table } from "reactstrap";
 import "./Manage.css";
 import Navbar from "../NavBar";
 import SideBar from "../SideBar";
 import Footer from "../Footer";
-import { Button, Input, FormGroup, Form } from "reactstrap";
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { Table } from "reactstrap";
 import CategoryModal from "./CategoryModal";
 import { getPublic } from "../../httpHelper";
+import { getParentCategoryFailException, getSubCategoryFailException } from "../../exception/CategoryException";
 
 export default class index extends Component {
   constructor(props) {
@@ -30,6 +29,52 @@ export default class index extends Component {
     });
   }
 
+  setSubCategory(subCategory) {
+    this.setState({
+      subCategory: subCategory.sort((a, b) => {
+        var nameA = a.categoryName.toUpperCase();
+        var nameB = b.categoryName.toUpperCase();
+        return nameA.localeCompare(nameB);
+      }),
+    });
+  }
+
+  setSubCategoryCallback(subCategory, callback) {
+    this.setState(
+      {
+        subCategory: subCategory.sort((a, b) => {
+          var nameA = a.categoryName.toUpperCase();
+          var nameB = b.categoryName.toUpperCase();
+          return nameA.localeCompare(nameB);
+        }),
+      },
+      callback
+    );
+  }
+
+  setParentCategorycallback(parentCategory, callback) {
+    this.setState(
+      {
+        parentCategory: parentCategory.sort((a, b) => {
+          var nameA = a.categoryName.toUpperCase();
+          var nameB = b.categoryName.toUpperCase();
+          return nameA.localeCompare(nameB);
+        }),
+      },
+      callback
+    );
+  }
+
+  setParentCategory(parentCategory) {
+    this.setState({
+      parentCategory: parentCategory.sort((a, b) => {
+        var nameA = a.categoryName.toUpperCase();
+        var nameB = b.categoryName.toUpperCase();
+        return nameA.localeCompare(nameB);
+      }),
+    });
+  }
+
   async receiveResult(finalResult) {
     let result = null;
     try {
@@ -37,18 +82,13 @@ export default class index extends Component {
     } catch (error) {
       console.log(error);
       this.setState({
-        notiContent:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        notiContent: getParentCategoryFailException(error),
       });
       this.toggle();
       return;
     }
+
+    // check if a parent category is delete
     if (
       finalResult.data.successCode === "SUCCESS_DELETE_CATEGORY" &&
       result.data.data.length !== this.state.parentCategory.length &&
@@ -56,55 +96,34 @@ export default class index extends Component {
     ) {
       this.setState({ parentCategoryId: this.state.parentCategory[0].id, categoryName: this.state.parentCategory[0].categoryName });
     }
-    this.setState(
-      {
-        parentCategory: result.data.data.sort((a, b) => {
-          var nameA = a.categoryName.toUpperCase();
-          var nameB = b.categoryName.toUpperCase();
-          return nameA.localeCompare(nameB);
-        }),
-      },
-      () => {
-        if (this.state.parentCategory.length > 0) {
-          if (finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY") {
-            this.setState({ parentCategoryId: finalResult.data.data.id, categoryName: finalResult.data.data.categoryName });
-          } else if (finalResult.data.successCode === "SUCCESS_UPDATE_CATEGORY") {
-            this.setState({ categoryName: this.state.parentCategory.find((e) => e.id === this.state.parentCategoryId).categoryName });
-          }
 
-          let parentCategoryId = finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY" ? finalResult.data.data.id : this.state.parentCategoryId;
-
-          try {
-            result = getPublic(`public/category/sub/${parentCategoryId}`);
-            result.then((e) => {
-              this.setState({
-                subCategory: e.data.data.sort((a, b) => {
-                  var nameA = a.categoryName.toUpperCase();
-                  var nameB = b.categoryName.toUpperCase();
-                  return nameA.localeCompare(nameB);
-                }),
-              });
-            });
-          } catch (error) {
-            console.log(error);
-            this.setState({
-              notiContent:
-                error.response === undefined
-                  ? "Fail to get data"
-                  : error.response.data.errorCode !== undefined
-                  ? error.response.data.errorCode
-                  : error.response.data.message !== undefined
-                  ? error.response.data.message
-                  : "Fail to get data",
-            });
-            this.toggle();
-            return;
-          }
-        } else {
-          this.setState({ parentCategoryId: null, categoryName: null });
+    this.setParentCategorycallback(result.data.data, () => {
+      if (this.state.parentCategory.length > 0) {
+        if (finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY") {
+          this.setState({ parentCategoryId: finalResult.data.data.id, categoryName: finalResult.data.data.categoryName });
+        } else if (finalResult.data.successCode === "SUCCESS_UPDATE_CATEGORY") {
+          this.setState({ categoryName: this.state.parentCategory.find((e) => e.id === this.state.parentCategoryId).categoryName });
         }
+
+        let parentCategoryId = finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY" ? finalResult.data.data.id : this.state.parentCategoryId;
+
+        try {
+          result = getPublic(`public/category/sub/${parentCategoryId}`);
+          result.then((e) => {
+            this.setSubCategory(e.data.data);
+          });
+        } catch (error) {
+          console.log(error);
+          this.setState({
+            notiContent: getSubCategoryFailException(error),
+          });
+          this.toggle();
+          return;
+        }
+      } else {
+        this.setState({ parentCategoryId: null, categoryName: null });
       }
-    );
+    });
   }
 
   handleParentRowClick(parentCategoryId, categoryName) {
@@ -113,23 +132,12 @@ export default class index extends Component {
     try {
       result = getPublic(`public/category/sub/${parentCategoryId}`);
       result.then((e) => {
-        this.setState({
-          subCategory: e.data.data.sort((a, b) => {
-            var nameA = a.categoryName.toUpperCase();
-            var nameB = b.categoryName.toUpperCase();
-            return nameA.localeCompare(nameB);
-          }),
-        });
+        this.setSubCategory(e.data.data);
       });
     } catch (error) {
       console.log(error);
       this.setState({
-        notiContent:
-          error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        notiContent: getSubCategoryFailException(error),
       });
       this.toggle();
       return;
@@ -143,58 +151,30 @@ export default class index extends Component {
     } catch (error) {
       console.log(error);
       this.setState({
-        notiContent:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        notiContent: getParentCategoryFailException(error),
       });
       this.toggle();
       return;
     }
-    this.setState(
-      {
-        parentCategory: result.data.data.sort((a, b) => {
-          var nameA = a.categoryName.toUpperCase();
-          var nameB = b.categoryName.toUpperCase();
-          return nameA.localeCompare(nameB);
-        }),
-      },
-      () => {
-        if (this.state.parentCategory.length > 0) {
-          this.setState({ parentCategoryId: this.state.parentCategory[0].id, categoryName: this.state.parentCategory[0].categoryName });
-          try {
-            result = getPublic(`public/category/sub/${this.state.parentCategory[0].id}`);
-            result.then((e) => {
-              this.setState({
-                subCategory: e.data.data.sort((a, b) => {
-                  var nameA = a.categoryName.toUpperCase();
-                  var nameB = b.categoryName.toUpperCase();
-                  return nameA.localeCompare(nameB);
-                }),
-              });
-            });
-          } catch (error) {
-            console.log(error);
-            this.setState({
-              notiContent:
-                error.response === undefined
-                  ? "Fail to get data"
-                  : error.response.data.errorCode !== undefined
-                  ? error.response.data.errorCode
-                  : error.response.data.message !== undefined
-                  ? error.response.data.message
-                  : "Fail to get data",
-            });
-            this.toggle();
-            return;
-          }
+
+    this.setParentCategorycallback(result.data.data, () => {
+      if (this.state.parentCategory.length > 0) {
+        this.setState({ parentCategoryId: this.state.parentCategory[0].id, categoryName: this.state.parentCategory[0].categoryName });
+        try {
+          result = getPublic(`public/category/sub/${this.state.parentCategory[0].id}`);
+          result.then((e) => {
+            this.setSubCategory(e.data.data);
+          });
+        } catch (error) {
+          console.log(error);
+          this.setState({
+            notiContent: getParentCategoryFailException(error),
+          });
+          this.toggle();
+          return;
         }
       }
-    );
+    });
   }
 
   async handleParentSearch(e) {
@@ -205,35 +185,20 @@ export default class index extends Component {
     } catch (error) {
       console.log(error);
       this.setState({
-        notiContent:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        notiContent: getParentCategoryFailException(error),
       });
       this.toggle();
       return;
     }
-    this.setState(
-      {
-        parentCategory: result.data.data.sort((a, b) => {
-          var nameA = a.categoryName.toUpperCase();
-          var nameB = b.categoryName.toUpperCase();
-          return nameA.localeCompare(nameB);
-        }),
-      },
-      () => {
-        if (e.target.inputSearchParent.value.trim() !== "") {
-          let searchResult = this.state.parentCategory.filter((element) =>
-            element.categoryName.toUpperCase().includes(e.target.inputSearchParent.value.toUpperCase())
-          );
-          this.setState({ parentCategory: searchResult });
-        }
+
+    this.setParentCategorycallback(result.data.data, () => {
+      if (e.target.inputSearchParent.value.trim() !== "") {
+        let searchResult = this.state.parentCategory.filter((element) =>
+          element.categoryName.toUpperCase().includes(e.target.inputSearchParent.value.toUpperCase())
+        );
+        this.setState({ parentCategory: searchResult });
       }
-    );
+    });
   }
 
   async handleChildSearch(e) {
@@ -244,38 +209,17 @@ export default class index extends Component {
     } catch (error) {
       console.log(error);
       this.setState({
-        notiContent:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        notiContent: getSubCategoryFailException(error),
       });
       this.toggle();
       return;
     }
-    this.setState(
-      {
-        subCategory: result.data.data.sort((a, b) => {
-          var nameA = a.categoryName.toUpperCase();
-          var nameB = b.categoryName.toUpperCase();
-          return nameA.localeCompare(nameB);
-        }),
-      },
-      () => {
-        console.log(e.target.inputSearchSub.value.trim());
-        if (e.target.inputSearchSub.value.trim() !== "") {
-          let searchResult = this.state.subCategory.filter((element) =>
-            element.categoryName.toUpperCase().includes(e.target.inputSearchSub.value.toUpperCase())
-          );
-          console.log(this.state.subCategory);
-          console.log(searchResult);
-          this.setState({ subCategory: searchResult });
-        }
+    this.setSubCategoryCallback(result.data.data, () => {
+      if (e.target.inputSearchSub.value.trim() !== "") {
+        let searchResult = this.state.subCategory.filter((element) => element.categoryName.toUpperCase().includes(e.target.inputSearchSub.value.toUpperCase()));
+        this.setState({ subCategory: searchResult });
       }
-    );
+    });
   }
 
   render() {

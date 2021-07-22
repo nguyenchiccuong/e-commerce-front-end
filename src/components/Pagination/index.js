@@ -3,13 +3,13 @@ import { Pagination, PaginationItem, PaginationLink } from "reactstrap";
 
 export default class index extends Component {
   state = {
-    activePage: 1,
+    activePage: this.props.activePage || 1,
     numOfPage: this.props.numOfPage,
     arrayNumOfPage: [1],
   };
 
   componentDidMount() {
-    if (this.state.numOfPage >= 1) {
+    if (this.props.numOfPage >= 1) {
       this.setState({ arrayNumOfPage: Array.from({ length: this.state.numOfPage }, (_, i) => i + 1) });
     } else {
       this.setState({ numOfPage: 1 });
@@ -142,34 +142,6 @@ export default class index extends Component {
             }
           }
         })}
-
-        {/* <PaginationItem disabled>
-          <PaginationLink first href="#" />
-        </PaginationItem>
-        <PaginationItem disabled>
-          <PaginationLink previous href="#" />
-        </PaginationItem>
-        <PaginationItem active>
-          <PaginationLink href="#">1</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">2</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">3</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">4</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">5</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink next href="#" />
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink last href="#" />
-        </PaginationItem> */}
       </Pagination>
     );
   }

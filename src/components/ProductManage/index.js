@@ -1,13 +1,13 @@
 import React, { Component } from "react";
+import { Table, Modal, ModalHeader, ModalBody, ModalFooter, Button } from "reactstrap";
 import "./ProductManage.css";
 import Navbar from "../NavBar";
 import SideBar from "../SideBar";
 import Footer from "../Footer";
-import { Table } from "reactstrap";
 import ProductModal from "./ProductModal";
 import Pagination from "../Pagination";
 import { getPublic } from "../../httpHelper";
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "reactstrap";
+import { getProductFailException, getProductCountFailException } from "../../exception/ProductExeption";
 
 export default class index extends Component {
   constructor(props) {
@@ -15,9 +15,11 @@ export default class index extends Component {
     this.state = {
       modal: false,
       notiContent: "",
-      numOfPage: 15,
-      activePage: 1,
+      numOfPage: 1,
+      activePage: 0,
+      itemPerPage: 8,
       productList: [],
+      flag: -1,
     };
     this.toggle = this.toggle.bind(this);
   }
@@ -28,29 +30,75 @@ export default class index extends Component {
     });
   }
 
-  pageReturn(result) {
+  async pageReturn(result) {
     this.setState({
-      activePage: result,
+      activePage: result - 1,
     });
-  }
-
-  receiveResult(result) {}
-
-  async componentDidMount() {
-    let result = null;
+    let resultPr = null;
     try {
-      result = await getPublic("public/product?page=0&items=2");
+      resultPr = await getPublic(`public/product?page=${result - 1}&items=${this.state.itemPerPage}`);
     } catch (error) {
       console.log(error);
       this.setState({
-        notiContent:
-          error.response === undefined
-            ? "Fail to get data"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to get data",
+        notiContent: getProductFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    this.setState({
+      productList: resultPr.data.data,
+    });
+  }
+
+  async receiveResult(result) {
+    if (result.data.successCode === "SUCCESS_SAVE_PRODUCT") {
+      this.componentDidMount();
+    } else {
+      let resultFromReq = null;
+      try {
+        resultFromReq = await getPublic(`public/product?page=${this.state.activePage}&items=${this.state.itemPerPage}`);
+      } catch (error) {
+        console.log(error);
+        this.setState({
+          notiContent: getProductFailException(error),
+        });
+        this.toggle();
+        return;
+      }
+      this.setState({
+        productList: resultFromReq.data.data,
+      });
+    }
+  }
+
+  async componentDidMount() {
+    let page = null;
+    try {
+      page = await getPublic(`public/product/count`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductCountFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    this.setState({
+      numOfPage:
+        page.data.data.numberOfEntity / this.state.itemPerPage === 0
+          ? 1
+          : page.data.data.numberOfEntity % this.state.itemPerPage === 0
+          ? page.data.data.numberOfEntity / this.state.itemPerPage
+          : Math.floor(page.data.data.numberOfEntity / this.state.itemPerPage) + 1,
+      flag: Math.random() + "abc",
+    });
+    let result = null;
+    try {
+      result = await getPublic(`public/product?page=${this.state.activePage}&items=${this.state.itemPerPage}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductFailException(error),
       });
       this.toggle();
       return;
@@ -72,8 +120,8 @@ export default class index extends Component {
             <div className="w-75 flex-fill main-content overflow-auto">
               <h1>Product manage</h1>
 
-              <div class="d-plex w-100 plex row justify-content-between">
-                <h3 class="ml-5">Product</h3>
+              <div className="d-plex w-100 plex row justify-content-between">
+                <h3 className="ml-5">Product</h3>
 
                 <ProductModal
                   color="success"
@@ -86,7 +134,7 @@ export default class index extends Component {
                 />
               </div>
               {/* <!-- table --> */}
-              <Table class="table table-striped">
+              <Table className="table-striped">
                 <thead>
                   <tr>
                     <th scope="col">#</th>
@@ -104,7 +152,7 @@ export default class index extends Component {
                     <tr key={e.productName + e.category.CategoryName + index}>
                       <th scope="row">{index + 1}</th>
                       <td>{e.productName}</td>
-                      <td>{e.category.CategoryName}</td>
+                      <td>{e.category.categoryName}</td>
                       <td>{e.model}</td>
                       <td>{e.brand.brandName}</td>
                       <td>{e.origin.country}</td>
@@ -125,7 +173,7 @@ export default class index extends Component {
                           productId={`${e.id}`}
                           color="danger"
                           title="Delete product"
-                          buttonLabel="Add"
+                          buttonLabel="Del"
                           actionButtonColor="danger"
                           actionButtonLabel="delete"
                           business="del"
@@ -137,8 +185,7 @@ export default class index extends Component {
                 </tbody>
               </Table>
               {/* <!-- table --> */}
-              {/* <!-- pagin --> */}
-              <Pagination numOfPage={this.state.numOfPage} pageReturn={(result) => this.pageReturn(result)} />
+              <Pagination key={this.state.flag} numOfPage={this.state.numOfPage} pageReturn={(result) => this.pageReturn(result)} />
               {/* <!-- pagin --> */}
             </div>
           </div>

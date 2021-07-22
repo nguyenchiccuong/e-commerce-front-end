@@ -1,10 +1,18 @@
 import React, { Component } from "react";
 import "./CustomerSignUp.css";
-import { Button, Input, Label } from "reactstrap";
+import { Button, Input, Label, Form, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import { postPublic } from "../../httpHelper";
 import checkPattern from "../../util/filter";
-import { Form } from "reactstrap";
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import {
+  invalidUsernameException,
+  invalidNameException,
+  invalidEmailException,
+  invalidPhoneNumberException,
+  invalidPasswordException,
+  invalidRepeatPasswordException,
+  notCheckAgreementException,
+  customerSignUpFailException,
+} from "../../exception/UserException";
 
 export default class index extends Component {
   constructor(props) {
@@ -35,7 +43,40 @@ export default class index extends Component {
     });
   };
 
-  async handleSignUp(e) {
+  clearForm(e) {
+    this.setState({ isChecked: false });
+    e.target[6].checked = false;
+    this.setState({ name: "" });
+    this.setState({ email: "" });
+    this.setState({ username: "" });
+    this.setState({ phoneNumber: "" });
+    this.setState({ password: "" });
+    this.setState({ repeatPassword: "" });
+    this.setState({
+      notiContent: "Create account success",
+    });
+  }
+
+  async signup(user, e) {
+    let result;
+    try {
+      result = await postPublic("customer/auth/signup", user);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: customerSignUpFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    if (result.status === 200) {
+      this.clearForm(e);
+
+      this.toggle();
+    }
+  }
+
+  handleSignUp(e) {
     e.preventDefault();
     let name = e.target.name.value.trim();
     let email = e.target.email.value.trim();
@@ -46,17 +87,17 @@ export default class index extends Component {
     let isChecked = this.state.isChecked;
 
     let patternName =
-      /[a-zA-Z\ ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]+/;
-    let patternID = /^[a-zA-Z][a-zA-Z0-9\.]{7,15}/; //char num . 8->16
+      /[a-zA-Z ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]+/;
+    let patternID = /^[a-zA-Z][a-zA-Z0-9.]{7,15}/; //char num . 8->16
     let patternPhoneNumber = /[0-9]+/;
-    let patternEmail = /^[a-z][a-z0-9_\.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,4}){1,2}$/;
+    let patternEmail = /^[a-z][a-z0-9_.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,4}){1,2}$/;
     // let patternEmail = /^[a-z][a-z0-9_\.]{5,32}@[a-z0-9]{2,}(\.[a-z0-9]{2,}){1,}$/; more truth
     let patternPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/;
     //Minimum eight and maximum 10 characters, at least one uppercase letter, one lowercase letter, one number and one special character:
 
     if (checkPattern(patternID, username) === false) {
       this.setState({
-        notiContent: "Username not valid",
+        notiContent: invalidUsernameException(),
       });
       this.toggle();
       return;
@@ -64,7 +105,7 @@ export default class index extends Component {
 
     if (checkPattern(patternName, name) === false || name.trim() === "") {
       this.setState({
-        notiContent: "Name not valid",
+        notiContent: invalidNameException(),
       });
       this.toggle();
       return;
@@ -73,7 +114,7 @@ export default class index extends Component {
     if (email !== "") {
       if (checkPattern(patternEmail, email) === false) {
         this.setState({
-          notiContent: "Email not valid",
+          notiContent: invalidEmailException(),
         });
         this.toggle();
         return;
@@ -83,7 +124,7 @@ export default class index extends Component {
     if (phoneNumber !== "") {
       if (checkPattern(patternPhoneNumber, phoneNumber) === false || (phoneNumber.length < 7 && phoneNumber.length > 12) === true) {
         this.setState({
-          notiContent: "Phone number not valid",
+          notiContent: invalidPhoneNumberException(),
         });
         this.toggle();
         return;
@@ -92,7 +133,7 @@ export default class index extends Component {
 
     if (checkPattern(patternPassword, password) === false) {
       this.setState({
-        notiContent: "Password not valid",
+        notiContent: invalidPasswordException(),
       });
       this.toggle();
       return;
@@ -100,7 +141,7 @@ export default class index extends Component {
 
     if (password.localeCompare(repeatPassword) !== 0) {
       this.setState({
-        notiContent: "Repat password not match",
+        notiContent: invalidRepeatPasswordException(),
       });
       this.toggle();
       return;
@@ -108,7 +149,7 @@ export default class index extends Component {
 
     if (isChecked === false) {
       this.setState({
-        notiContent: "Please read and check the agreement!",
+        notiContent: notCheckAgreementException(),
       });
       this.toggle();
       return;
@@ -120,38 +161,7 @@ export default class index extends Component {
     user.username = username;
     user.phoneNumber = phoneNumber === "" ? null : phoneNumber;
     user.password = password;
-    let result;
-    try {
-      result = await postPublic("customer/auth/signup", user);
-    } catch (error) {
-      console.log(error);
-      this.setState({
-        notiContent:
-          error.response === undefined
-            ? "Fail to sign up"
-            : error.response.data.errorCode !== undefined
-            ? error.response.data.errorCode
-            : error.response.data.message !== undefined
-            ? error.response.data.message
-            : "Fail to sign up",
-      });
-      this.toggle();
-      return;
-    }
-    if (result.status === 200) {
-      this.setState({ isChecked: false });
-      e.target[6].checked = false;
-      this.setState({ name: "" });
-      this.setState({ email: "" });
-      this.setState({ username: "" });
-      this.setState({ phoneNumber: "" });
-      this.setState({ password: "" });
-      this.setState({ repeatPassword: "" });
-      this.setState({
-        notiContent: "Create account success",
-      });
-      this.toggle();
-    }
+    this.signup(user, e);
   }
 
   handleFieldChange(e, key) {
@@ -165,13 +175,13 @@ export default class index extends Component {
         <Form onSubmit={(e) => this.handleSignUp(e)}>
           <div className="form-group pl-4 pr-3 pt-1 mb-1 pr-3">
             <Label for="username">Username</Label>
-            <span className="tooltip-text">(*)Char, num, . (8-16)</span>
+            <span className="tooltip-text">(*)</span>
             <Input
               type="text"
               name="username"
               className="form-control"
               id="username"
-              placeholder="Username"
+              placeholder="Char, num, . (8-16)"
               value={this.state.username}
               onChange={(e) => this.handleFieldChange(e, "username")}
             />
@@ -220,13 +230,13 @@ export default class index extends Component {
           </div>
           <div className="form-group pl-4 pr-3 pt-1 mb-1">
             <Label for="password">Password</Label>
-            <span className="tooltip-text">(*)Uppercase, lowercase, special char, number (8-10)</span>
+            <span className="tooltip-text">(*)</span>
             <Input
               type="password"
               name="password"
               className="form-control"
               id="password"
-              placeholder="Password"
+              placeholder="Uppercase, lowercase, special char, number (8-10)"
               value={this.state.password}
               onChange={(e) => this.handleFieldChange(e, "password")}
             />

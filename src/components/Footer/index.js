@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import "./Footer.css";
-import { Button, Input, CardImg, InputGroup, InputGroupAddon, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Container, Row, Col } from "reactstrap";
+import { Container, Row, Col } from "reactstrap";
 import { Link } from "react-router-dom";
 
 export default class index extends Component {

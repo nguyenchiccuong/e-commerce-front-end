@@ -1,7 +1,13 @@
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { Col, Form, FormGroup, Label, Input } from "reactstrap";
 import React, { Component } from "react";
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Form, FormGroup, Label, Input } from "reactstrap";
 import { post, put, del } from "../../httpHelper";
+import {
+  saveParentCategoryFailException,
+  saveSubCategoryFailException,
+  updateCategoryFailException,
+  deleteCategoryFailException,
+  invalidCategoryNameException,
+} from "../../exception/CategoryException";
 
 export default class CategoryModal extends Component {
   constructor(props) {
@@ -11,10 +17,23 @@ export default class CategoryModal extends Component {
       categoryName: this.props.categoryName,
       message: "",
     };
-
     this.toggle = this.toggle.bind(this);
     this.toggleSave = this.toggleSave.bind(this);
     this.handleCategoryNameChange = this.handleCategoryNameChange.bind(this);
+  }
+
+  clearMessage() {
+    setTimeout(() => {
+      this.setState({
+        message: "",
+      });
+    }, 2000);
+  }
+
+  clearCategoryNameForm() {
+    this.setState({
+      categoryName: "",
+    });
   }
 
   toggle() {
@@ -26,129 +45,100 @@ export default class CategoryModal extends Component {
     });
   }
 
-  async toggleSave() {
-    if (this.state.categoryName === undefined || this.state.categoryName.trim() === "") {
+  async saveCategory(category) {
+    let result = null;
+    try {
+      result = await post(`employee/category/parent`, category);
+    } catch (error) {
+      console.log(error.response);
       this.setState({
-        message: "Invalid input",
+        message: saveParentCategoryFailException(error),
       });
-      setTimeout(() => {
-        this.setState({
-          message: "",
-        });
-      }, 2000);
+      this.clearMessage();
       return;
     }
+    this.props.receiveResult(result);
+    this.setState({
+      modal: !this.state.modal,
+    });
+    this.clearCategoryNameForm();
+  }
+
+  async saveSubCategory(category) {
+    category.id = this.props.parentCategoryId;
     let result = null;
+    try {
+      result = await post(`employee/category/sub`, category);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        message: saveSubCategoryFailException(error),
+      });
+      this.clearMessage();
+      return;
+    }
+    this.props.receiveResult(result);
+    this.setState({
+      modal: !this.state.modal,
+    });
+    this.clearCategoryNameForm();
+  }
+
+  async updateCategory(category) {
+    let result = null;
+    category.id = this.props.categoryId;
+    try {
+      result = await put(`employee/category`, category);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        message: updateCategoryFailException(error),
+      });
+      this.clearMessage();
+      return;
+    }
+    this.props.receiveResult(result);
+    this.setState({
+      modal: !this.state.modal,
+    });
+  }
+
+  async delCategory(category) {
+    let result = null;
+    try {
+      result = await del(`employee/category/${this.props.categoryId}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        message: deleteCategoryFailException(error),
+      });
+      this.clearMessage();
+      return;
+    }
+    this.props.receiveResult(result);
+    this.setState({
+      modal: !this.state.modal,
+    });
+  }
+
+  toggleSave() {
+    if (this.state.categoryName === undefined || this.state.categoryName.trim() === "") {
+      this.setState({
+        message: invalidCategoryNameException(),
+      });
+      this.clearMessage();
+      return;
+    }
     let category = {};
     category.categoryName = this.state.categoryName;
     if (this.props.business === "add") {
-      try {
-        result = await post(`employee/category/parent`, category);
-      } catch (error) {
-        console.log(error.response);
-        this.setState({
-          message:
-            error.response === undefined
-              ? "Fail to save data"
-              : error.response.data.errorCode !== undefined
-              ? error.response.data.errorCode
-              : error.response.data.message !== undefined
-              ? error.response.data.message
-              : "Fail to save data",
-        });
-        setTimeout(() => {
-          this.setState({
-            message: "",
-          });
-        }, 2000);
-        return;
-      }
-      this.props.receiveResult(result);
-      this.setState({
-        modal: !this.state.modal,
-        categoryName: "",
-      });
+      this.saveCategory(category);
     } else if (this.props.business === "addsub") {
-      category.id = this.props.parentCategoryId;
-      try {
-        result = await post(`employee/category/sub`, category);
-      } catch (error) {
-        console.log(error);
-        this.setState({
-          message:
-            error.response === undefined
-              ? "Fail to save data"
-              : error.response.data.errorCode !== undefined
-              ? error.response.data.errorCode
-              : error.response.data.message !== undefined
-              ? error.response.data.message
-              : "Fail to save data",
-        });
-        setTimeout(() => {
-          this.setState({
-            message: "",
-          });
-        }, 2000);
-        return;
-      }
-      this.props.receiveResult(result);
-      this.setState({
-        modal: !this.state.modal,
-        categoryName: "",
-      });
+      this.saveSubCategory(category);
     } else if (this.props.business === "update") {
-      category.id = this.props.categoryId;
-      try {
-        result = await put(`employee/category`, category);
-      } catch (error) {
-        console.log(error);
-        this.setState({
-          message:
-            error.response === undefined
-              ? "Fail to save data"
-              : error.response.data.errorCode !== undefined
-              ? error.response.data.errorCode
-              : error.response.data.message !== undefined
-              ? error.response.data.message
-              : "Fail to save data",
-        });
-        setTimeout(() => {
-          this.setState({
-            message: "",
-          });
-        }, 2000);
-        return;
-      }
-      this.props.receiveResult(result);
-      this.setState({
-        modal: !this.state.modal,
-      });
+      this.updateCategory(category);
     } else if (this.props.business === "del") {
-      try {
-        result = await del(`employee/category/${this.props.categoryId}`);
-      } catch (error) {
-        console.log(error);
-        this.setState({
-          message:
-            error.response === undefined
-              ? "Fail to delete data"
-              : error.response.data.errorCode !== undefined
-              ? error.response.data.errorCode
-              : error.response.data.message !== undefined
-              ? error.response.data.message
-              : "Fail to delete data",
-        });
-        setTimeout(() => {
-          this.setState({
-            message: "",
-          });
-        }, 2000);
-        return;
-      }
-      this.props.receiveResult(result);
-      this.setState({
-        modal: !this.state.modal,
-      });
+      this.delCategory(category);
     }
   }
 
