@@ -71,3 +71,43 @@ export function employeeSignInFailException(error) {
     ? error.response.data.message
     : "Username, password wrong";
 }
+
+export function countCustomerFailException(error) {
+  return error.response === undefined
+    ? "Fail to count customer"
+    : error.response.data.errorCode !== undefined
+    ? error.response.data.errorCode
+    : error.response.data.message !== undefined
+    ? error.response.data.message
+    : "Fail to count customer";
+}
+
+export function getCustomerFailException(error) {
+  return error.response === undefined
+    ? "Fail to get customer"
+    : error.response.data.errorCode !== undefined
+    ? error.response.data.errorCode
+    : error.response.data.message !== undefined
+    ? error.response.data.message
+    : "Fail to get customer";
+}
+
+export function lockCustomerFailException(error) {
+  return error.response === undefined
+    ? "Fail to lock customer"
+    : error.response.data.errorCode !== undefined
+    ? error.response.data.errorCode
+    : error.response.data.message !== undefined
+    ? error.response.data.message
+    : "Fail to lock customer";
+}
+
+export function unlockCustomerFailException(error) {
+  return error.response === undefined
+    ? "Fail to unlock customer"
+    : error.response.data.errorCode !== undefined
+    ? error.response.data.errorCode
+    : error.response.data.message !== undefined
+    ? error.response.data.message
+    : "Fail to unlock customer";
+}

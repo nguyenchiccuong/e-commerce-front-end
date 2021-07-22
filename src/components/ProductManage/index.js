@@ -17,7 +17,7 @@ export default class index extends Component {
       notiContent: "",
       numOfPage: 1,
       activePage: 0,
-      itemPerPage: 8,
+      itemPerPage: 2,
       productList: [],
       flag: -1,
     };
@@ -31,43 +31,21 @@ export default class index extends Component {
   }
 
   async pageReturn(result) {
-    this.setState({
-      activePage: result - 1,
-    });
-    let resultPr = null;
-    try {
-      resultPr = await getPublic(`public/product?page=${result - 1}&items=${this.state.itemPerPage}`);
-    } catch (error) {
-      console.log(error);
-      this.setState({
-        notiContent: getProductFailException(error),
-      });
-      this.toggle();
-      return;
-    }
-    this.setState({
-      productList: resultPr.data.data,
-    });
+    this.setState(
+      {
+        activePage: result - 1,
+      },
+      () => {
+        this.getRecentPagePr();
+      }
+    );
   }
 
   async receiveResult(result) {
     if (result.data.successCode === "SUCCESS_SAVE_PRODUCT") {
       this.componentDidMount();
     } else {
-      let resultFromReq = null;
-      try {
-        resultFromReq = await getPublic(`public/product?page=${this.state.activePage}&items=${this.state.itemPerPage}`);
-      } catch (error) {
-        console.log(error);
-        this.setState({
-          notiContent: getProductFailException(error),
-        });
-        this.toggle();
-        return;
-      }
-      this.setState({
-        productList: resultFromReq.data.data,
-      });
+      this.getRecentPagePr();
     }
   }
 
@@ -92,6 +70,10 @@ export default class index extends Component {
           : Math.floor(page.data.data.numberOfEntity / this.state.itemPerPage) + 1,
       flag: Math.random() + "abc",
     });
+    this.getRecentPagePr();
+  }
+
+  async getRecentPagePr() {
     let result = null;
     try {
       result = await getPublic(`public/product?page=${this.state.activePage}&items=${this.state.itemPerPage}`);
