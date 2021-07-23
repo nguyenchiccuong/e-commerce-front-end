@@ -16,3 +16,21 @@
   margin-right: 0px;
   margin-top: 10rem;
 }
+
+h5.card-title {
+  word-wrap: break-word;
+  /* max-width: 100%; */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* display: inline-block; */
+}
+
+.my-card {
+  width: 20rem;
+  height: 30rem;
+}
+
+.my-card-img{
+  height: 20rem;
+}

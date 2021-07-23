@@ -1,5 +1,21 @@
 import React, { Component } from "react";
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "reactstrap";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Container,
+  Row,
+  Col,
+  Card,
+  CardImg,
+  CardText,
+  CardBody,
+  CardTitle,
+  CardSubtitle,
+} from "reactstrap";
+
 import "./Product.css";
 import Navbar from "../NavBar";
 import Footer from "../Footer";
@@ -29,6 +45,7 @@ export default class index extends Component {
       itemPerPage: 2,
       productList: [],
       parentCategoryList: [],
+      categoryId: undefined,
       flag: -1,
       items: [
         {
@@ -76,37 +93,6 @@ export default class index extends Component {
     this.toggle = this.toggle.bind(this);
   }
 
-  toggle() {
-    this.setState({
-      modal: !this.state.modal,
-    });
-  }
-
-  async pageReturn(result) {
-    this.setState(
-      {
-        activePage: result - 1,
-      },
-      () => {
-        this.getRecentPagePr();
-      }
-    );
-  }
-
-  async receiveCategory(CategoryId) {
-    console.log(CategoryId);
-  }
-
-  setParentCategory(parentCategory) {
-    this.setState({
-      parentCategoryList: parentCategory.sort((a, b) => {
-        var nameA = a.categoryName.toUpperCase();
-        var nameB = b.categoryName.toUpperCase();
-        return nameA.localeCompare(nameB);
-      }),
-    });
-  }
-
   async componentDidMount() {
     let page = null;
     try {
@@ -119,15 +105,8 @@ export default class index extends Component {
       this.toggle();
       return;
     }
-    this.setState({
-      numOfPage:
-        page.data.data.numberOfEntity / this.state.itemPerPage === 0
-          ? 1
-          : page.data.data.numberOfEntity % this.state.itemPerPage === 0
-          ? page.data.data.numberOfEntity / this.state.itemPerPage
-          : Math.floor(page.data.data.numberOfEntity / this.state.itemPerPage) + 1,
-      flag: Math.random() + "abc",
-    });
+
+    this.setNumOfPageAndReloadPaging(page.data.data.numberOfEntity);
     this.getRecentPagePr();
 
     let result = null;
@@ -142,6 +121,76 @@ export default class index extends Component {
       return;
     }
     this.setParentCategory(result.data.data);
+  }
+
+  toggle() {
+    this.setState({
+      modal: !this.state.modal,
+    });
+  }
+
+  async pageReturn(result) {
+    this.setState(
+      {
+        activePage: result - 1,
+      },
+      () => {
+        if (this.state.categoryId !== undefined) {
+          this.getRecentPagePrByCategoryIdCallback(() => {
+            if (this.state.productList.length <= 0) {
+              this.getRecentPagePrByParentCategoryId();
+            }
+          });
+        } else {
+          this.getRecentPagePr();
+        }
+      }
+    );
+  }
+
+  async receiveCategory(categoryId) {
+    this.setState({ categoryId: categoryId });
+    let page = null;
+    try {
+      page = await getPublic(`public/product/count/parent-category?category_id=${categoryId}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductCountFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    let page2 = null;
+    try {
+      page2 = await getPublic(`public/product/count/category?category_id=${categoryId}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductCountFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    if (page.data.data.numberOfEntity >= page2.data.data.numberOfEntity) {
+      this.setNumOfPageAndReloadPaging(page.data.data.numberOfEntity, () => {
+        this.getRecentPagePrByParentCategoryId();
+      });
+    } else {
+      this.setNumOfPageAndReloadPaging(page2.data.data.numberOfEntity, () => {
+        this.getRecentPagePrByCategoryIdCallback();
+      });
+    }
+  }
+
+  setParentCategory(parentCategory) {
+    this.setState({
+      parentCategoryList: parentCategory.sort((a, b) => {
+        var nameA = a.categoryName.toUpperCase();
+        var nameB = b.categoryName.toUpperCase();
+        return nameA.localeCompare(nameB);
+      }),
+    });
   }
 
   async getRecentPagePr() {
@@ -161,6 +210,60 @@ export default class index extends Component {
     });
   }
 
+  async getRecentPagePrByParentCategoryId() {
+    let result = null;
+    try {
+      result = await getPublic(
+        `public/product/parent-category?page=${this.state.activePage}&items=${this.state.itemPerPage}&category_id=${this.state.categoryId}`
+      );
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    this.setState({
+      productList: result.data.data,
+    });
+  }
+
+  async getRecentPagePrByCategoryIdCallback(callback) {
+    let result = null;
+    try {
+      result = await getPublic(`public/product/category?page=${this.state.activePage}&items=${this.state.itemPerPage}&category_id=${this.state.categoryId}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    this.setState(
+      {
+        productList: result.data.data,
+      },
+      callback
+    );
+  }
+
+  setNumOfPageAndReloadPaging(numOfEntity, callback) {
+    this.setState(
+      {
+        numOfPage:
+          numOfEntity / this.state.itemPerPage === 0
+            ? 1
+            : numOfEntity % this.state.itemPerPage === 0
+            ? numOfEntity / this.state.itemPerPage
+            : Math.floor(numOfEntity / this.state.itemPerPage) + 1,
+        flag: Math.random() + "abc",
+      },
+      callback
+    );
+  }
+
   render() {
     return (
       <div>
@@ -178,12 +281,107 @@ export default class index extends Component {
               <p class="w-100 text-center my-0 rounded side-bar-category-header p-2">Category</p>
               {/* <!-- category --> */}
               {this.state.parentCategoryList.map((category) => (
-                <DropDownCusCategory categoryName={category.categoryName} categoryId={category.id} receiveCategory={this.receiveCategory}/>
+                <DropDownCusCategory
+                  categoryName={category.categoryName}
+                  categoryId={category.id}
+                  receiveCategory={(categoryId) => this.receiveCategory(categoryId)}
+                />
               ))}
               {/* <!-- category --> */}
             </div>
           </div>
           <div className="p-2 flex-grow-1">
+            <Container>
+              <h1 class="border-bottom">New product</h1>
+              {this.state.productList.map((product, index) => {
+                if (index % 3 === 0) {
+                  return (
+                    <Row className="mb-1">
+                      <Col xs="4" md="4">
+                        <Card className="my-card">
+                          <CardImg
+                            className="my-card-img"
+                            top
+                            width="100%"
+                            src={`http://localhost:9998/img/product/${product.id}-1.png`}
+                            alt="Card image cap"
+                          />
+                          <CardBody>
+                            <CardTitle tag="h5">{product.productName}</CardTitle>
+                            {/* <CardSubtitle tag="h6" className="mb-2 text-muted">
+                              Card subtitle
+                            </CardSubtitle> */}
+                            <CardText>{product.productDetails[0].price}</CardText>
+                            <div className="d-plex">
+                              <Button color="warning" className="w-25">
+                                ?
+                              </Button>{" "}
+                              <Button color="primary" className="float-right w-50">
+                                Add to cart
+                              </Button>
+                            </div>
+                          </CardBody>
+                        </Card>
+                      </Col>
+                      <Col xs="4" md="4">
+                        {this.state.productList[index + 1] !== undefined ? (
+                          <Card className="my-card">
+                            <CardImg
+                              className="my-card-img"
+                              top
+                              width="100%"
+                              src={`http://localhost:9998/img/product/${this.state.productList[index + 1].id}-1.png`}
+                              alt="Card image cap"
+                            />
+                            <CardBody>
+                              <CardTitle tag="h5">{this.state.productList[index + 1].productName}</CardTitle>
+                              <CardText>{this.state.productList[index + 1].productDetails[0].price}</CardText>
+                              <div className="d-plex">
+                                <Button color="warning" className="w-25">
+                                  ?
+                                </Button>
+                                <Button color="primary" className="float-right w-50">
+                                  Add to cart
+                                </Button>
+                              </div>
+                            </CardBody>
+                          </Card>
+                        ) : (
+                          ""
+                        )}
+                      </Col>
+                      <Col xs="4" md="4">
+                        {this.state.productList[index + 2] !== undefined ? (
+                          <Card className="my-card">
+                            <CardImg
+                              className="my-card-img"
+                              top
+                              width="100%"
+                              src={`http://localhost:9998/img/product/${this.state.productList[index + 2].id}-1.png`}
+                              alt="Card image cap"
+                            />
+                            <CardBody>
+                              <CardTitle tag="h5">{this.state.productList[index + 2].productName}</CardTitle>
+                              <CardText>{this.state.productList[index + 2].productDetails[0].price}</CardText>
+                              <div className="d-plex">
+                                <Button color="warning" className="w-25">
+                                  ?
+                                </Button>
+                                <Button color="primary" className="float-right w-50">
+                                  Add to cart
+                                </Button>
+                              </div>
+                            </CardBody>
+                          </Card>
+                        ) : (
+                          ""
+                        )}
+                      </Col>
+                    </Row>
+                  );
+                }
+              })}
+            </Container>
             {/* <!-- pagin --> */}
             <Pagination key={this.state.flag} numOfPage={this.state.numOfPage} pageReturn={(result) => this.pageReturn(result)} />
             {/* <!-- pagin --> */}

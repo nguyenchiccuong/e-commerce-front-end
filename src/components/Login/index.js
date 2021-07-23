@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Navbar, NavbarBrand, Button, Form, Label, Input, CardImg, FormGroup, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { Redirect } from "react-router-dom";
+import { Redirect, withRouter } from "react-router-dom";
 import "./Login.css";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -159,13 +159,19 @@ class index extends Component {
     }
   }
 
+  logoClick() {
+    if (this.state.signInType === "cus") {
+      this.props.history.push("/home");
+    }
+  }
+
   render() {
     return (
       <div className="login-form">
         {this.interceptor()}
         <Navbar className="bg-primary my-signin-nav" light expand="md">
           <NavbarBrand href="#">
-            <CardImg width="100%" className="logo-img" src={logo} alt="" />
+            <CardImg width="100%" className="logo-img" src={logo} alt="" onClick={() => this.logoClick()} />
           </NavbarBrand>
           <h1>THE FIT SHOP</h1>
           <Form inline className="my-2 my-lg-0 ml-auto" onSubmit={(e) => this.handleSignIn(e)}>
@@ -204,4 +210,4 @@ class index extends Component {
   }
 }
 
-export default withCookies(index);
+export default withCookies(withRouter(index));

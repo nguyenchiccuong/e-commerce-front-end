@@ -62,6 +62,15 @@ class index extends Component {
     // window.location.href = this.state.signOutRedirect;
   }
 
+  logoClick() {
+    if (this.state.signInType === "em") {
+      this.props.history.push("/manage/product");
+    } else if (this.state.signInType === "cus") {
+      this.props.history.push("/home");
+      window.location.href = "/home";
+    }
+  }
+
   render() {
     return (
       <div className="my-nav-bar">
@@ -69,7 +78,7 @@ class index extends Component {
           <div className="header d-flex p-3 bg-dark text-white justify-content-between">
             <div className="d-flex">
               <div className="ml-5 mr-3">
-                <CardImg width="100%" className="logo-img" src={logo} alt="" />
+                <CardImg width="100%" className="logo-img" src={logo} alt="" onClick={() => this.logoClick()} />
               </div>
               <h3 className="align-self-center">THE FIT SHOP {this.state.signInType === "cus" ? "" : "MANAGE"}</h3>
             </div>
