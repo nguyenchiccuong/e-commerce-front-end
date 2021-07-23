@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Button, Table, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import "./CustomerManage.css";
 import Navbar from "../NavBar";
 import SideBar from "../SideBar";
 import Footer from "../Footer";

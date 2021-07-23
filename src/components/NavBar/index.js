@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import "./NavBar.css";
 import logo from "../../img/logo.png";
 import { Button, Input, CardImg, InputGroup, InputGroupAddon, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 import { Link, withRouter } from "react-router-dom";
@@ -37,7 +36,7 @@ class index extends Component {
       this.setState({ name: this.state.em.username });
       this.setState({ signOutRedirect: "/employee/signin" });
     } else if (this.state.signInType === "cus") {
-      if (this.state.cus === "") {
+      if (this.state.cus !== "") {
         this.setState({ notSignInClassName: "d-none" });
         this.setState({ name: this.state.cus.username });
         this.setState({ signOutRedirect: "/signin" });
