@@ -24,7 +24,7 @@ import Pagination from "../Pagination";
 import DropDownCusCategory from "../DropDownCusCategory";
 import { getPublic } from "../../httpHelper";
 import { withRouter } from "react-router-dom";
-import { getProductFailException, getProductCountFailException } from "../../exception/ProductExeption";
+import { getProductFailException, getProductCountFailException } from "../../exception/ProductException";
 import slide1 from "../../img/slide1.jpg";
 import slide2 from "../../img/slide2.jpg";
 import slide3 from "../../img/slide3.jpg";

@@ -7,7 +7,7 @@ import {
   updateProductFailException,
   deleteProductFailException,
   saveImgFailException,
-} from "../../exception/ProductExeption";
+} from "../../exception/ProductException";
 import { getParentCategoryFailException, getSubCategoryFailException } from "../../exception/CategoryException";
 import { getBrandFailException } from "../../exception/BrandException";
 import { getOriginFailException } from "../../exception/OriginException";

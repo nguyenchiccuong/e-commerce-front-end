@@ -6,7 +6,7 @@ import Footer from "../Footer";
 import ProductModal from "./ProductModal";
 import Pagination from "../Pagination";
 import { getPublic } from "../../httpHelper";
-import { getProductFailException, getProductCountFailException } from "../../exception/ProductExeption";
+import { getProductFailException, getProductCountFailException } from "../../exception/ProductException";
 
 export default class index extends Component {
   constructor(props) {

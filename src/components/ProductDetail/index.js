@@ -9,11 +9,9 @@ import {
   Row,
   Col,
   Card,
-  CardImg,
   CardText,
   CardBody,
   CardTitle,
-  CardSubtitle,
   ButtonGroup,
   Table,
   Input,
@@ -29,8 +27,10 @@ import { withRouter } from "react-router-dom";
 import Navbar from "../NavBar";
 import Footer from "../Footer";
 import Carousel from "../Carousel";
-import { getPublic } from "../../httpHelper";
-import { getProductFailException } from "../../exception/ProductExeption";
+import ReviewModal from "./ReviewModal";
+import { getPublic, postCus } from "../../httpHelper";
+import { getProductFailException } from "../../exception/ProductException";
+import { saveReviewFailException, reviewContentNullException } from "../../exception/ReviewException";
 
 class index extends Component {
   static propTypes = {
@@ -48,11 +48,16 @@ class index extends Component {
       product: undefined,
       productDetailId: undefined,
       price: undefined,
+      reviews: [],
+      reviewContent: "",
     };
     this.toggle = this.toggle.bind(this);
   }
 
   async componentDidMount() {
+    const { cookies } = this.props;
+    cookies.set("review", "", { expires: new Date(), path: "/" });
+
     let productResult = null;
     try {
       productResult = await getPublic(`public/product/${this.props.match.params.productId}`);
@@ -77,6 +82,30 @@ class index extends Component {
       }
       this.setState({ items: items, flag: Math.random() + "ajdbsjb" });
     }
+    if (productResult.data.data.productDetails.length > 0) {
+      let reviews = [];
+      productResult.data.data.productDetails.forEach((productDetail) => (reviews = [...reviews, productDetail.reviews]));
+      this.setState({ reviews: reviews.flat().sort((a, b) => b.createDate.localeCompare(a.createDate)) });
+    }
+  }
+
+  async refreshReview() {
+    let productResult = null;
+    try {
+      productResult = await getPublic(`public/product/${this.props.match.params.productId}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    if (productResult.data.data.productDetails.length > 0) {
+      let reviews = [];
+      productResult.data.data.productDetails.forEach((productDetail) => (reviews = [...reviews, productDetail.reviews]));
+      this.setState({ reviews: reviews.flat().sort((a, b) => b.createDate.localeCompare(a.createDate)) });
+    }
   }
 
   toggle() {
@@ -90,6 +119,54 @@ class index extends Component {
       productDetailId: this.state.product.productDetails[index].id,
       price: this.state.product.productDetails[index].price,
     });
+  }
+
+  reviewInputChange(e) {
+    this.setState({ reviewContent: e.target.value });
+  }
+
+  async handleSubmitReview(e) {
+    e.preventDefault();
+    if (this.state.cus === "") {
+      const { cookies } = this.props;
+      cookies.set("review", `${this.props.match.params.productId}`, { expires: new Date(new Date().valueOf() + 1000 * 3600 * 24), path: "/" });
+      this.props.history.push("/signin");
+    } else {
+      if (this.state.reviewContent.trim() === "") {
+        this.setState({
+          notiContent: reviewContentNullException(),
+        });
+        this.toggle();
+        return;
+      }
+      let review = {
+        productDetailId: this.state.productDetailId,
+        orderId: null,
+        numOfStar: 5,
+        description: this.state.reviewContent,
+        img: 0,
+        anonymous: 0,
+      };
+      let result = null;
+      try {
+        result = await postCus(`customer/review`, review);
+      } catch (error) {
+        console.log(error);
+        this.setState({
+          notiContent: saveReviewFailException(error),
+        });
+        this.toggle();
+        return;
+      }
+      this.setState({
+        reviewContent: "",
+      });
+      this.refreshReview();
+    }
+  }
+
+  receiveResult(result) {
+    this.refreshReview();
   }
 
   render() {
@@ -109,38 +186,40 @@ class index extends Component {
             <Col md="6">
               <div className="d-plex plex-column product-detail">
                 <h1>{this.state.product !== undefined ? this.state.product.productName : ""}</h1>
-                <Table className="product-detail-table">
+                <Table className="product-detail-table" striped>
                   <tbody>
                     <tr>
-                      <td scope="row">Brand:</td>
+                      <th className="w-50" scope="row">
+                        Brand:
+                      </th>
                       <td>{this.state.product !== undefined ? this.state.product.brand.brandName : ""}</td>
                     </tr>
                     <tr>
-                      <td scope="row">Model:</td>
+                      <th scope="row">Model:</th>
                       <td>{this.state.product !== undefined ? this.state.product.model : ""}</td>
                     </tr>
                     <tr>
-                      <td scope="row">Material:</td>
+                      <th scope="row">Material:</th>
                       <td>{this.state.product !== undefined ? this.state.product.material : ""}</td>
                     </tr>
                     <tr>
-                      <td scope="row">Size:</td>
+                      <th scope="row">Size:</th>
                       <td>{this.state.product !== undefined ? this.state.product.size : ""}</td>
                     </tr>
                     <tr>
-                      <td scope="row">Standard:</td>
+                      <th scope="row">Standard:</th>
                       <td>{this.state.product !== undefined ? this.state.product.standard : ""}</td>
                     </tr>
                     <tr>
-                      <td scope="row">Weight:</td>
+                      <th scope="row">Weight:</th>
                       <td>{this.state.product !== undefined ? this.state.product.weight + " kg" : ""}</td>
                     </tr>
                     <tr>
-                      <td scope="row">Origin:</td>
+                      <th scope="row">Origin:</th>
                       <td>{this.state.product !== undefined ? this.state.product.origin.country : ""}</td>
                     </tr>
                     <tr>
-                      <td scope="row">Warranty:</td>
+                      <th scope="row">Warranty:</th>
                       <td>{this.state.product !== undefined ? this.state.product.warranty + " days" : ""}</td>
                     </tr>
                   </tbody>
@@ -166,10 +245,19 @@ class index extends Component {
           </Row>
           <Row>
             <Col md="6">
-              <Form className="mt-5">
+              <Form className="mt-5" onSubmit={(e) => this.handleSubmitReview(e)}>
                 <FormGroup>
-                  <Label for="exampleInputEmail1">Share you thought with us now! We are here waiting for you</Label>
-                  <Input type="textarea" name="text" id="exampleText" className="w-100 review-textarea" rows="3" />
+                  <Label for="exampleInputEmail1">Share you thought about this product with us now! We are here waiting for you</Label>
+                  <Input
+                    type="textarea"
+                    maxLength="200"
+                    name="reviewContent"
+                    id="reviewContent"
+                    className="w-100 review-textarea"
+                    rows="3"
+                    value={this.state.reviewContent}
+                    onChange={(e) => this.reviewInputChange(e)}
+                  />
                 </FormGroup>
                 <Button type="submit" color="primary" className="float-right">
                   Submit
@@ -179,73 +267,49 @@ class index extends Component {
             <Col md="6">
               <h1>Rating</h1>
               <div className="d-plex plex-column p-3 mt-2 overflow-auto review-area">
-                <Card>
-                  <CardHeader>
-                    Featured
-                    <Button type="button" color="primary" className="float-right">
-                      Update
-                    </Button>
-                  </CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                    <Button type="button" color="danger" className="float-right">
-                      Delete
-                    </Button>
-                  </CardBody>
-                </Card>
-                <Card>
-                  <CardHeader>Featured</CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>
-                      With supporting text below as a natural lead-in to additional
-                      content.ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-                    </CardText>
-                  </CardBody>
-                </Card>
-                <Card>
-                  <CardHeader>Featured</CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  </CardBody>
-                </Card>
-                <Card>
-                  <CardHeader>Featured</CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  </CardBody>
-                </Card>
-                <Card>
-                  <CardHeader>Featured</CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  </CardBody>
-                </Card>
-                <Card>
-                  <CardHeader>Featured</CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  </CardBody>
-                </Card>
-                <Card>
-                  <CardHeader>Featured</CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  </CardBody>
-                </Card>
-                <Card>
-                  <CardHeader>Featured</CardHeader>
-                  <CardBody>
-                    <CardTitle>Special title treatment</CardTitle>
-                    <CardText>With supporting text below as a natural lead-in to additional content.</CardText>
-                  </CardBody>
-                </Card>
+                {this.state.reviews.map((review) => (
+                  <Card>
+                    <CardHeader>
+                      {review.user.username} - Review date: {new Date(review.createDate).toString()}
+                      {this.state.cus !== "" && this.state.cus.id === review.user.id ? (
+                        <ReviewModal
+                          color="warning"
+                          title="Update review content"
+                          buttonLabel="Update"
+                          actionButtonColor="warning"
+                          actionButtonLabel="Save"
+                          business="update"
+                          reviewId={review.id}
+                          reviewContent={review.description}
+                          receiveResult={(result) => this.receiveResult(result)}
+                          classForComponent="float-right"
+                        />
+                      ) : (
+                        ""
+                      )}
+                    </CardHeader>
+                    <CardBody>
+                      <CardTitle></CardTitle>
+                      <CardText>{review.description}</CardText>
+                      {this.state.cus !== "" && this.state.cus.id === review.user.id ? (
+                        <ReviewModal
+                          color="danger"
+                          title="Delete review"
+                          buttonLabel="Delete"
+                          actionButtonColor="danger"
+                          actionButtonLabel="Delete"
+                          business="del"
+                          reviewId={review.id}
+                          reviewContent={review.description}
+                          receiveResult={(result) => this.receiveResult(result)}
+                          classForComponent="float-right"
+                        />
+                      ) : (
+                        ""
+                      )}
+                    </CardBody>
+                  </Card>
+                ))}
               </div>
             </Col>
           </Row>

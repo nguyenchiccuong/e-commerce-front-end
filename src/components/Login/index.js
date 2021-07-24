@@ -31,6 +31,7 @@ class index extends Component {
       notiContent: "",
       cus: this.props.cookies.get("cus") || "",
       em: this.props.cookies.get("em") || "",
+      review: this.props.cookies.get("review") || "",
     };
 
     this.toggle = this.toggle.bind(this);
@@ -154,8 +155,12 @@ class index extends Component {
       // redirect to emp page
       return <Redirect to="/manage/product" />;
     } else if (this.state.signInType === "cus" && this.state.cus !== "") {
-      // redirect to pr page
-      return <Redirect to="/home" />;
+      if (this.state.review !== "") {
+        return <Redirect to={`/product-detail/${this.state.review}`} />;
+      } else {
+        // redirect to pr page
+        return <Redirect to="/home" />;
+      }
     }
   }
 
