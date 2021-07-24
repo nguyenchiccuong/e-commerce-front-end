@@ -6,6 +6,7 @@ import CategoryManage from "./components/CategoryManage";
 import ProductManage from "./components/ProductManage";
 import CustomerManage from "./components/CustomerManage";
 import Product from "./components/Product";
+import ProductDetail from "./components/ProductDetail";
 
 export default class App extends Component {
   render() {
@@ -30,6 +31,9 @@ export default class App extends Component {
             </Route>
             <Route exact path="/home">
               <Product />
+            </Route>
+            <Route exact path="/product-detail/:productId">
+              <ProductDetail/>
             </Route>
             <Route path="/**" render={() => <h2>Not found</h2>}></Route>
           </Switch>

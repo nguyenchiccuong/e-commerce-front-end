@@ -1,0 +1,25 @@
+.product-detail-img {
+  margin-left: 8rem;
+  margin-top: 8rem;
+}
+
+.product-detail {
+  margin-top: 9rem;
+}
+
+.product-detail p {
+  position: relative;
+  float: right;
+}
+
+.product-detail-table {
+  width: 80% !important;
+}
+
+.review-textarea {
+  resize: none;
+}
+
+.review-area{
+  max-height: 40rem;
+}

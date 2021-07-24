@@ -23,6 +23,7 @@ import Carousel from "../Carousel";
 import Pagination from "../Pagination";
 import DropDownCusCategory from "../DropDownCusCategory";
 import { getPublic } from "../../httpHelper";
+import { withRouter } from "react-router-dom";
 import { getProductFailException, getProductCountFailException } from "../../exception/ProductExeption";
 import slide1 from "../../img/slide1.jpg";
 import slide2 from "../../img/slide2.jpg";
@@ -34,7 +35,7 @@ import slide7 from "../../img/slide7.jpg";
 import slide8 from "../../img/slide8.jpg";
 import { getParentCategoryFailException } from "../../exception/CategoryException";
 
-export default class index extends Component {
+class index extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -264,6 +265,10 @@ export default class index extends Component {
     );
   }
 
+  seeDetail(productId) {
+    this.props.history.push(`/product-detail/${productId}`);
+  }
+
   render() {
     return (
       <div>
@@ -311,11 +316,13 @@ export default class index extends Component {
                             {/* <CardSubtitle tag="h6" className="mb-2 text-muted">
                               Card subtitle
                             </CardSubtitle> */}
-                            <CardText>{product.productDetails[0].price}</CardText>
+                            <CardText>
+                              {new Intl.NumberFormat("de-DE", { style: "currency", currency: "VND" }).format(product.productDetails[0].price)}
+                            </CardText>
                             <div className="d-plex">
-                              <Button color="warning" className="w-25">
+                              <Button color="warning" className="w-25" onClick={() => this.seeDetail(product.id)}>
                                 ?
-                              </Button>{" "}
+                              </Button>
                               <Button color="primary" className="float-right w-50">
                                 Add to cart
                               </Button>
@@ -335,9 +342,13 @@ export default class index extends Component {
                             />
                             <CardBody>
                               <CardTitle tag="h5">{this.state.productList[index + 1].productName}</CardTitle>
-                              <CardText>{this.state.productList[index + 1].productDetails[0].price}</CardText>
+                              <CardText>
+                                {new Intl.NumberFormat("de-DE", { style: "currency", currency: "VND" }).format(
+                                  this.state.productList[index + 1].productDetails[0].price
+                                )}
+                              </CardText>
                               <div className="d-plex">
-                                <Button color="warning" className="w-25">
+                                <Button color="warning" className="w-25" onClick={() => this.seeDetail(this.state.productList[index + 1].id)}>
                                   ?
                                 </Button>
                                 <Button color="primary" className="float-right w-50">
@@ -362,9 +373,13 @@ export default class index extends Component {
                             />
                             <CardBody>
                               <CardTitle tag="h5">{this.state.productList[index + 2].productName}</CardTitle>
-                              <CardText>{this.state.productList[index + 2].productDetails[0].price}</CardText>
+                              <CardText>
+                                {new Intl.NumberFormat("de-DE", { style: "currency", currency: "VND" }).format(
+                                  this.state.productList[index + 2].productDetails[0].price
+                                )}
+                              </CardText>
                               <div className="d-plex">
-                                <Button color="warning" className="w-25">
+                                <Button color="warning" className="w-25" onClick={() => this.seeDetail(this.state.productList[index + 2].id)}>
                                   ?
                                 </Button>
                                 <Button color="primary" className="float-right w-50">
@@ -403,3 +418,5 @@ export default class index extends Component {
     );
   }
 }
+
+export default withRouter(index);

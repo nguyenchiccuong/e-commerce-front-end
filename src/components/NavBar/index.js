@@ -66,7 +66,7 @@ class index extends Component {
     if (this.state.signInType === "em") {
       this.props.history.push("/manage/product");
     } else if (this.state.signInType === "cus") {
-      this.props.history.push("/home");
+      // this.props.history.push("/home");
       window.location.href = "/home";
     }
   }
