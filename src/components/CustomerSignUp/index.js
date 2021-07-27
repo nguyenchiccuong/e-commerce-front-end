@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "./CustomerSignUp.css";
 import { Button, Input, Label, Form, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { postPublic } from "../../httpHelper";
+import * as CustomerService from "../../service/CustomerService";
 import checkPattern from "../../util/filter";
 import {
   invalidUsernameException,
@@ -60,7 +60,7 @@ export default class index extends Component {
   async signup(user, e) {
     let result;
     try {
-      result = await postPublic("customer/auth/signup", user);
+      result = await CustomerService.customerSignUp(user);
     } catch (error) {
       console.log(error);
       this.setState({

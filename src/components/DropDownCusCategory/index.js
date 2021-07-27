@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "reactstrap";
-import { getPublic } from "../../httpHelper";
+import * as CategoryService from "../../service/CategoryService";
 import { getSubCategoryFailException } from "../../exception/CategoryException";
 
 export default class index extends Component {
@@ -35,7 +35,7 @@ export default class index extends Component {
   async componentDidMount() {
     let result = null;
     try {
-      result = await getPublic(`public/category/sub/${this.props.categoryId}`);
+      result = await CategoryService.getSubCategory(this.props.categoryId);
     } catch (error) {
       console.log(error);
       this.setState({

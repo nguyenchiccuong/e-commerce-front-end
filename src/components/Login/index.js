@@ -6,7 +6,8 @@ import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
 import logo from "../../img/logo.png";
 import checkPattern from "../../util/filter";
-import { postPublic } from "../../httpHelper";
+import * as CustomerService from "../../service/CustomerService";
+import * as EmployeeService from "../../service/EmployeeService";
 import {
   employeeSignInFailException,
   customerSignInFailException,
@@ -84,7 +85,7 @@ class index extends Component {
       let result = null;
       if (this.state.signInType === "em") {
         try {
-          result = await postPublic("employee/auth/signin", user);
+          result = await EmployeeService.employeeSignIn(user);
         } catch (error) {
           console.log(error);
           this.setState({
@@ -95,7 +96,7 @@ class index extends Component {
         }
       } else {
         try {
-          result = await postPublic("customer/auth/signin", user);
+          result = await CustomerService.customerSignIn(user);
         } catch (error) {
           console.log(error);
           this.setState({

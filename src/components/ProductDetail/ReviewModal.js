@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, Input } from "reactstrap";
-import { putCus, delCus } from "../../httpHelper";
+import * as ReviewService from "../../service/ReviewService";
 import { updateReviewFailException, reviewContentNullException, deleteReviewFailException } from "../../exception/ReviewException";
 
 export default class ReviewModal extends Component {
@@ -43,7 +43,7 @@ export default class ReviewModal extends Component {
     };
     let result = null;
     try {
-      result = await putCus(`customer/review`, review);
+      result = await ReviewService.updateReview(review);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -61,7 +61,7 @@ export default class ReviewModal extends Component {
   async delReview() {
     let result = null;
     try {
-      result = await delCus(`customer/review/${this.props.reviewId}`);
+      result = await ReviewService.deleteReview(this.props.reviewId);
     } catch (error) {
       console.log(error);
       this.setState({

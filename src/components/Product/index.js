@@ -22,7 +22,8 @@ import Footer from "../Footer";
 import Carousel from "../Carousel";
 import Pagination from "../Pagination";
 import DropDownCusCategory from "../DropDownCusCategory";
-import { getPublic } from "../../httpHelper";
+import * as ProductService from "../../service/ProductService";
+import * as CategoryService from "../../service/CategoryService";
 import { withRouter } from "react-router-dom";
 import { getProductFailException, getProductCountFailException } from "../../exception/ProductException";
 import slide1 from "../../img/slide1.jpg";
@@ -97,7 +98,7 @@ class index extends Component {
   async componentDidMount() {
     let page = null;
     try {
-      page = await getPublic(`public/product/count`);
+      page = await ProductService.countProduct();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -113,7 +114,7 @@ class index extends Component {
 
     let result = null;
     try {
-      result = await getPublic("public/category/parent");
+      result = await CategoryService.getParentCategory();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -154,7 +155,7 @@ class index extends Component {
     this.setState({ categoryId: categoryId });
     let page = null;
     try {
-      page = await getPublic(`public/product/count/parent-category?category_id=${categoryId}`);
+      page = await ProductService.countProductByParentCategoryid(categoryId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -165,7 +166,7 @@ class index extends Component {
     }
     let page2 = null;
     try {
-      page2 = await getPublic(`public/product/count/category?category_id=${categoryId}`);
+      page2 = await ProductService.countProductByCategoryid(categoryId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -198,7 +199,7 @@ class index extends Component {
   async getRecentPagePr() {
     let result = null;
     try {
-      result = await getPublic(`public/product?page=${this.state.activePage}&items=${this.state.itemPerPage}`);
+      result = await ProductService.getProduct(this.state.activePage, this.state.itemPerPage);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -215,9 +216,7 @@ class index extends Component {
   async getRecentPagePrByParentCategoryId() {
     let result = null;
     try {
-      result = await getPublic(
-        `public/product/parent-category?page=${this.state.activePage}&items=${this.state.itemPerPage}&category_id=${this.state.categoryId}`
-      );
+      result = await ProductService.getProductByParentCategoryid(this.state.activePage, this.state.itemPerPage, this.state.categoryId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -234,7 +233,7 @@ class index extends Component {
   async getRecentPagePrByCategoryIdCallback(callback) {
     let result = null;
     try {
-      result = await getPublic(`public/product/category?page=${this.state.activePage}&items=${this.state.itemPerPage}&category_id=${this.state.categoryId}`);
+      result = await ProductService.getProductByCategoryid(this.state.activePage, this.state.itemPerPage, this.state.categoryId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -273,7 +272,7 @@ class index extends Component {
   async getRecentPagePrBySearchKeywordCallback(searchKeyword, callback) {
     let result = null;
     try {
-      result = await getPublic(`public/product/search?page=${this.state.activePage}&items=${this.state.itemPerPage}&keyword=${searchKeyword}`);
+      result = await ProductService.searchProduct(this.state.activePage, this.state.itemPerPage, searchKeyword);
     } catch (error) {
       console.log(error);
       this.setState({

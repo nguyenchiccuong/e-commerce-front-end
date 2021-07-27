@@ -1,6 +1,10 @@
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Form, FormGroup, Label, Input, Table, Row } from "reactstrap";
 import React, { Component } from "react";
-import { post, put, del, getPublic, postUpload } from "../../httpHelper";
+// import { post, put, del, getPublic, postUpload } from "../../httpHelper";
+import * as ProductService from "../../service/ProductService";
+import * as CategoryService from "../../service/CategoryService";
+import * as BrandService from "../../service/BrandService";
+import * as OriginService from "../../service/OriginService";
 import {
   getProductFailException,
   saveProductFailException,
@@ -99,7 +103,7 @@ export default class ProductModal extends Component {
   async saveProduct(product) {
     let result = null;
     try {
-      result = await post(`employee/product`, product);
+      result = await ProductService.saveProduct(product);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -114,7 +118,7 @@ export default class ProductModal extends Component {
       data.append("name", `${result.data.data.id}-${index + 1}`);
       data.append("dir", "product");
       try {
-        postUpload(`upload/img`, data);
+        ProductService.uploadProductImg(data);
       } catch (error) {
         console.log(error);
         this.setState({
@@ -133,7 +137,7 @@ export default class ProductModal extends Component {
   async updateProduct(product) {
     let result = null;
     try {
-      result = await put(`employee/product`, product);
+      result = await ProductService.updateProduct(product);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -149,7 +153,7 @@ export default class ProductModal extends Component {
   async deleteProduct(product) {
     let result = null;
     try {
-      result = await del(`employee/product/${this.props.productId}`);
+      result = await ProductService.deleteProduct(this.props.productId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -232,7 +236,7 @@ export default class ProductModal extends Component {
       this.setState({ subCategoryId: "" });
       let subCategoryResult = null;
       try {
-        subCategoryResult = await getPublic(`public/category/sub/${e.target.value}`);
+        subCategoryResult = await CategoryService.getSubCategory(e.target.value);
       } catch (error) {
         console.log(error);
         this.setState({
@@ -274,7 +278,7 @@ export default class ProductModal extends Component {
   async componentDidMount() {
     let parentCategoryResult = null;
     try {
-      parentCategoryResult = await getPublic("public/category/parent");
+      parentCategoryResult = await CategoryService.getParentCategory();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -287,7 +291,7 @@ export default class ProductModal extends Component {
 
     let originResult = null;
     try {
-      originResult = await getPublic("public/origin");
+      originResult = await OriginService.getOrigin();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -300,7 +304,7 @@ export default class ProductModal extends Component {
 
     let brandResult = null;
     try {
-      brandResult = await getPublic("public/brand");
+      brandResult = await BrandService.getBrand();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -314,7 +318,7 @@ export default class ProductModal extends Component {
     if (this.props.productId !== undefined && !isNaN(this.props.productId) && this.props.productId.trim() !== "") {
       let productResult = null;
       try {
-        productResult = await getPublic(`public/product/${this.props.productId}`);
+        productResult = await ProductService.getProductById(this.props.productId);
       } catch (error) {
         console.log(error);
         this.setState({
@@ -345,7 +349,7 @@ export default class ProductModal extends Component {
       });
       let subCategoryResult = null;
       try {
-        subCategoryResult = await getPublic(`public/category/sub/${productResult.data.data.categoryId}`);
+        subCategoryResult = await CategoryService.getSubCategory(productResult.data.data.categoryId);
       } catch (error) {
         console.log(error);
         this.setState({

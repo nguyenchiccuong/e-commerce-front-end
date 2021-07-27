@@ -4,7 +4,7 @@ import Navbar from "../NavBar";
 import SideBar from "../SideBar";
 import Footer from "../Footer";
 import Pagination from "../Pagination";
-import { get, put } from "../../httpHelper";
+import * as CustomerService from "../../service/CustomerService";
 import { countCustomerFailException, getCustomerFailException, unlockCustomerFailException, lockCustomerFailException } from "../../exception/UserException";
 
 export default class index extends Component {
@@ -42,7 +42,7 @@ export default class index extends Component {
   async componentDidMount() {
     let page = null;
     try {
-      page = await get(`employee/customer/count`);
+      page = await CustomerService.countCustomer();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -66,7 +66,7 @@ export default class index extends Component {
   async getRecentPageCus() {
     let result = null;
     try {
-      result = await get(`employee/customer?page=${this.state.activePage}&items=${this.state.itemPerPage}`);
+      result = await CustomerService.getCustomer(this.state.activePage, this.state.itemPerPage);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -83,7 +83,7 @@ export default class index extends Component {
   async lockCustomer(id) {
     let result = null;
     try {
-      result = await put(`employee/customer/lock/${id}`);
+      result = await CustomerService.lockCustomer(id);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -98,7 +98,7 @@ export default class index extends Component {
   async unlockCustomer(id) {
     let result = null;
     try {
-      result = await put(`employee/customer/unlock/${id}`);
+      result = await CustomerService.unlockCustomer(id);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -113,7 +113,7 @@ export default class index extends Component {
   async getRecentPagePrBySearchKeywordCallback(searchKeyword, callback) {
     let result = null;
     try {
-      result = await get(`employee/customer/search?page=${this.state.activePage}&items=${this.state.itemPerPage}&keyword=${searchKeyword}`);
+      result = await CustomerService.searchCustomer(this.state.activePage, this.state.itemPerPage, searchKeyword);
     } catch (error) {
       console.log(error);
       this.setState({

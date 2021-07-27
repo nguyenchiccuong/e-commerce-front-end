@@ -28,7 +28,8 @@ import Navbar from "../NavBar";
 import Footer from "../Footer";
 import Carousel from "../Carousel";
 import ReviewModal from "./ReviewModal";
-import { getPublic, postCus } from "../../httpHelper";
+import * as ProductService from "../../service/ProductService";
+import * as ReviewService from "../../service/ReviewService";
 import { getProductFailException } from "../../exception/ProductException";
 import { saveReviewFailException, reviewContentNullException } from "../../exception/ReviewException";
 
@@ -60,7 +61,7 @@ class index extends Component {
 
     let productResult = null;
     try {
-      productResult = await getPublic(`public/product/${this.props.match.params.productId}`);
+      productResult = await ProductService.getProductById(this.props.match.params.productId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -92,7 +93,7 @@ class index extends Component {
   async refreshReview() {
     let productResult = null;
     try {
-      productResult = await getPublic(`public/product/${this.props.match.params.productId}`);
+      productResult = await ProductService.getProductById(this.props.match.params.productId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -149,7 +150,7 @@ class index extends Component {
       };
       let result = null;
       try {
-        result = await postCus(`customer/review`, review);
+        result = await ReviewService.saveReview(review);
       } catch (error) {
         console.log(error);
         this.setState({
@@ -229,7 +230,7 @@ class index extends Component {
               <ButtonGroup role="group" aria-label="Basic example">
                 {this.state.product !== undefined
                   ? this.state.product.productDetails.map((productDetail, index) => (
-                      <Button type="button" color="info" outline onClick={() => this.priceChange(index)}>
+                      <Button key={index + productDetail.color} type="button" color="info" outline onClick={() => this.priceChange(index)}>
                         {productDetail.color}
                       </Button>
                     ))
@@ -268,7 +269,7 @@ class index extends Component {
               <h1>Rating</h1>
               <div className="d-plex plex-column p-3 mt-2 overflow-auto review-area">
                 {this.state.reviews.map((review) => (
-                  <Card>
+                  <Card key={review.user.username + new Date(review.createDate).toString()}>
                     <CardHeader>
                       {review.user.username} - Review date: {new Date(review.createDate).toString()}
                       {this.state.cus !== "" && this.state.cus.id === review.user.id ? (

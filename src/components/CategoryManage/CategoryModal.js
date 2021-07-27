@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Col, Form, FormGroup, Label, Input } from "reactstrap";
-import { post, put, del } from "../../httpHelper";
+import * as CategoryService from "../../service/CategoryService";
 import {
   saveParentCategoryFailException,
   saveSubCategoryFailException,
@@ -48,7 +48,7 @@ export default class CategoryModal extends Component {
   async saveCategory(category) {
     let result = null;
     try {
-      result = await post(`employee/category/parent`, category);
+      result = await CategoryService.saveCategory(category);
     } catch (error) {
       console.log(error.response);
       this.setState({
@@ -68,7 +68,7 @@ export default class CategoryModal extends Component {
     category.id = this.props.parentCategoryId;
     let result = null;
     try {
-      result = await post(`employee/category/sub`, category);
+      result = await CategoryService.saveSubCategory(category);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -88,7 +88,7 @@ export default class CategoryModal extends Component {
     let result = null;
     category.id = this.props.categoryId;
     try {
-      result = await put(`employee/category`, category);
+      result = await CategoryService.updateCategory(category);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -106,7 +106,7 @@ export default class CategoryModal extends Component {
   async delCategory(category) {
     let result = null;
     try {
-      result = await del(`employee/category/${this.props.categoryId}`);
+      result = await CategoryService.deleteCategory(this.props.categoryId);
     } catch (error) {
       console.log(error);
       this.setState({

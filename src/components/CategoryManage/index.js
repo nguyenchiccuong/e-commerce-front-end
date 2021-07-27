@@ -5,7 +5,7 @@ import Navbar from "../NavBar";
 import SideBar from "../SideBar";
 import Footer from "../Footer";
 import CategoryModal from "./CategoryModal";
-import { getPublic } from "../../httpHelper";
+import * as CategoryService from "../../service/CategoryService";
 import { getParentCategoryFailException, getSubCategoryFailException } from "../../exception/CategoryException";
 
 export default class index extends Component {
@@ -78,7 +78,7 @@ export default class index extends Component {
   async receiveResult(finalResult) {
     let result = null;
     try {
-      result = await getPublic("public/category/parent");
+      result = await CategoryService.getParentCategory();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -108,7 +108,7 @@ export default class index extends Component {
         let parentCategoryId = finalResult.data.successCode === "SUCCESS_SAVE_CATEGORY" ? finalResult.data.data.id : this.state.parentCategoryId;
 
         try {
-          result = getPublic(`public/category/sub/${parentCategoryId}`);
+          result = CategoryService.getSubCategory(parentCategoryId);
           result.then((e) => {
             this.setSubCategory(e.data.data);
           });
@@ -130,7 +130,7 @@ export default class index extends Component {
     let result = null;
     this.setState({ parentCategoryId: parentCategoryId, categoryName: categoryName });
     try {
-      result = getPublic(`public/category/sub/${parentCategoryId}`);
+      result = CategoryService.getSubCategory(parentCategoryId);
       result.then((e) => {
         this.setSubCategory(e.data.data);
       });
@@ -147,7 +147,7 @@ export default class index extends Component {
   async componentDidMount() {
     let result = null;
     try {
-      result = await getPublic("public/category/parent");
+      result = await CategoryService.getParentCategory();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -161,7 +161,7 @@ export default class index extends Component {
       if (this.state.parentCategory.length > 0) {
         this.setState({ parentCategoryId: this.state.parentCategory[0].id, categoryName: this.state.parentCategory[0].categoryName });
         try {
-          result = getPublic(`public/category/sub/${this.state.parentCategory[0].id}`);
+          result = CategoryService.getSubCategory(this.state.parentCategory[0].id);
           result.then((e) => {
             this.setSubCategory(e.data.data);
           });
@@ -181,7 +181,7 @@ export default class index extends Component {
     e.preventDefault();
     let result = null;
     try {
-      result = await getPublic("public/category/parent");
+      result = await CategoryService.getParentCategory();
     } catch (error) {
       console.log(error);
       this.setState({
@@ -205,7 +205,7 @@ export default class index extends Component {
     e.preventDefault();
     let result = null;
     try {
-      result = await getPublic(`public/category/sub/${this.state.parentCategoryId}`);
+      result = await CategoryService.getSubCategory(this.state.parentCategoryId);
     } catch (error) {
       console.log(error);
       this.setState({
@@ -222,10 +222,12 @@ export default class index extends Component {
     });
   }
 
+  searchKeywordReturn(keyword) {}
+
   render() {
     return (
       <div>
-        <Navbar signInType="em" palce="category" />
+        <Navbar signInType="em" palce="category" searchKeywordReturn={(keyword) => this.searchKeywordReturn(keyword)} />
         <section>
           <div className="d-flex text-white align-items-stretch justify-content-between manage-body-content">
             <div className="flex-fill side-bar px-auto">
