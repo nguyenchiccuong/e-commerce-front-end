@@ -310,7 +310,7 @@ class index extends Component {
           flag: Math.random() + "abc",
         },
         () => {
-          this.getRecentPagePrBySearchKeywordCallback(keyword, () => {});
+          this.getRecentPagePrBySearchKeywordCallback(keyword);
         }
       );
     }

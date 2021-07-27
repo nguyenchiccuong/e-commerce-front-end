@@ -89,10 +89,54 @@ export default class index extends Component {
     });
   }
 
+  async getRecentPagePrBySearchKeywordCallback(searchKeyword, callback) {
+    let result = null;
+    try {
+      result = await getPublic(`public/product/search?page=${this.state.activePage}&items=${this.state.itemPerPage}&keyword=${searchKeyword}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    this.setState(
+      {
+        productList: result.data.data,
+      },
+      callback
+    );
+  }
+
+  searchKeywordReturn(keyword) {
+    if (keyword === "") {
+      this.setState(
+        {
+          activePage: 0,
+        },
+        () => {
+          this.componentDidMount();
+        }
+      );
+    } else {
+      this.setState(
+        {
+          activePage: 0,
+          numOfPage: 1,
+          flag: Math.random() + "abc",
+        },
+        () => {
+          this.getRecentPagePrBySearchKeywordCallback(keyword);
+        }
+      );
+    }
+  }
+
   render() {
     return (
       <div>
-        <Navbar signInType="em" palce="product" />
+        <Navbar signInType="em" palce="product" searchKeywordReturn={(keyword) => this.searchKeywordReturn(keyword)} />
         <section>
           <div className="d-flex text-white align-items-stretch justify-content-between manage-body-content">
             <div className="flex-fill side-bar px-auto">

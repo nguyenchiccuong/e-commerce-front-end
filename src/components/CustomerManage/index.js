@@ -109,10 +109,55 @@ export default class index extends Component {
     }
     this.getRecentPageCus();
   }
+
+  async getRecentPagePrBySearchKeywordCallback(searchKeyword, callback) {
+    let result = null;
+    try {
+      result = await get(`employee/customer/search?page=${this.state.activePage}&items=${this.state.itemPerPage}&keyword=${searchKeyword}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getCustomerFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    this.setState(
+      {
+        customerList: result.data.data,
+      },
+      callback
+    );
+  }
+
+  searchKeywordReturn(keyword) {
+    if (keyword === "") {
+      this.setState(
+        {
+          activePage: 0,
+        },
+        () => {
+          this.componentDidMount();
+        }
+      );
+    } else {
+      this.setState(
+        {
+          activePage: 0,
+          numOfPage: 1,
+          flag: Math.random() + "abc",
+        },
+        () => {
+          this.getRecentPagePrBySearchKeywordCallback(keyword, () => {});
+        }
+      );
+    }
+  }
+
   render() {
     return (
       <div>
-        <Navbar signInType="em" palce="customer" />
+        <Navbar signInType="em" palce="customer" searchKeywordReturn={(keyword) => this.searchKeywordReturn(keyword)} />
         <section>
           <div className="d-flex text-white align-items-stretch justify-content-between manage-body-content">
             <div className="flex-fill side-bar px-auto">
