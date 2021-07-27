@@ -107,8 +107,9 @@ class index extends Component {
       return;
     }
 
-    this.setNumOfPageAndReloadPaging(page.data.data.numberOfEntity);
-    this.getRecentPagePr();
+    this.setNumOfPageAndReloadPaging(page.data.data.numberOfEntity, () => {
+      this.getRecentPagePr();
+    });
 
     let result = null;
     try {
@@ -269,10 +270,56 @@ class index extends Component {
     this.props.history.push(`/product-detail/${productId}`);
   }
 
+  async getRecentPagePrBySearchKeywordCallback(searchKeyword, callback) {
+    let result = null;
+    try {
+      result = await getPublic(`public/product/search?page=${this.state.activePage}&items=${this.state.itemPerPage}&keyword=${searchKeyword}`);
+    } catch (error) {
+      console.log(error);
+      this.setState({
+        notiContent: getProductFailException(error),
+      });
+      this.toggle();
+      return;
+    }
+    this.setState(
+      {
+        productList: result.data.data,
+      },
+      callback
+    );
+  }
+
+  searchKeywordReturn(keyword) {
+    if (keyword === "") {
+      this.setState(
+        {
+          activePage: 0,
+          categoryId: undefined,
+        },
+        () => {
+          this.componentDidMount();
+        }
+      );
+    } else {
+      this.setState(
+        {
+          activePage: 0,
+          categoryId: undefined,
+          numOfPage: 1,
+          flag: Math.random() + "abc",
+        },
+        () => {
+          this.getRecentPagePrBySearchKeywordCallback(keyword, () => {});
+        }
+      );
+    }
+  }
+
   render() {
     return (
       <div>
-        <Navbar signInType="cus" palce="product" />
+        <Navbar signInType="cus" palce="product" searchKeywordReturn={(keyword) => this.searchKeywordReturn(keyword)} />
 
         <div className="d-flex text-white hero-banner">
           <div className="w-100 plex-fill">
@@ -287,6 +334,7 @@ class index extends Component {
               {/* <!-- category --> */}
               {this.state.parentCategoryList.map((category) => (
                 <DropDownCusCategory
+                  key={category.id + category.categoryName}
                   categoryName={category.categoryName}
                   categoryId={category.id}
                   receiveCategory={(categoryId) => this.receiveCategory(categoryId)}
@@ -301,7 +349,7 @@ class index extends Component {
               {this.state.productList.map((product, index) => {
                 if (index % 3 === 0) {
                   return (
-                    <Row className="mb-1">
+                    <Row className="mb-1" key={product.id + product.productName}>
                       <Col xs="4" md="4">
                         <Card className="my-card">
                           <CardImg

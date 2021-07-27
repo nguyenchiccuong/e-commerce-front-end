@@ -62,7 +62,9 @@ export default class index extends Component {
         <DropdownMenu>
           <DropdownItem onClick={() => this.props.receiveCategory(this.props.categoryId)}>All</DropdownItem>
           {this.state.subCategoryList.map((e) => (
-            <DropdownItem onClick={() => this.props.receiveCategory(e.id)}>{e.categoryName}</DropdownItem>
+            <DropdownItem key={e.id + e.categoryName} onClick={() => this.props.receiveCategory(e.id)}>
+              {e.categoryName}
+            </DropdownItem>
           ))}
         </DropdownMenu>
         {/* noti modal */}

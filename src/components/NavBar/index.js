@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import logo from "../../img/logo.png";
-import { Button, Input, CardImg, InputGroup, InputGroupAddon, Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
+import { Button, Input, CardImg, InputGroup, InputGroupAddon, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Form } from "reactstrap";
 import { Link, withRouter } from "react-router-dom";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
@@ -71,6 +71,11 @@ class index extends Component {
     }
   }
 
+  handleSubmitSearch(e) {
+    e.preventDefault();
+    this.props.searchKeywordReturn(e.target.searchKeyword.value.trim());
+  }
+
   render() {
     return (
       <div className="my-nav-bar">
@@ -84,12 +89,16 @@ class index extends Component {
             </div>
             <div className="w-25 align-self-center">
               {/* <!-- Another variation with a button --> */}
-              <InputGroup className="input-group">
-                <Input type="text" placeholder="Search anything" />
-                <InputGroupAddon addonType="prepend">
-                  <Button color="success">SEARCH</Button>
-                </InputGroupAddon>
-              </InputGroup>
+              <Form onSubmit={(e) => this.handleSubmitSearch(e)}>
+                <InputGroup className="input-group">
+                  <Input type="text" placeholder="Search anything" name="searchKeyword" />
+                  <InputGroupAddon addonType="prepend">
+                    <Button color="success" type="submit">
+                      SEARCH
+                    </Button>
+                  </InputGroupAddon>
+                </InputGroup>
+              </Form>
             </div>
             <div class="mr-5">
               <Link to={"/signin"} className={"text-light " + this.state.notSignInClassName}>
