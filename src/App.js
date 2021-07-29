@@ -7,6 +7,7 @@ import ProductManage from "./components/ProductManage";
 import CustomerManage from "./components/CustomerManage";
 import Product from "./components/Product";
 import ProductDetail from "./components/ProductDetail";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default class App extends Component {
   render() {
@@ -20,7 +21,12 @@ export default class App extends Component {
             <Route exact path="/signin">
               <CustomerLogin />
             </Route>
-            <Route exact path="/manage/category">
+            <ProtectedRoute exact path="/manage/category" component={CategoryManage} />
+
+            <ProtectedRoute exact path="/manage/product" component={ProductManage} />
+
+            <ProtectedRoute exact path="/manage/customer" component={CustomerManage} />
+            {/* <Route exact path="/manage/category">
               <CategoryManage />
             </Route>
             <Route exact path="/manage/product">
@@ -28,12 +34,12 @@ export default class App extends Component {
             </Route>
             <Route exact path="/manage/customer">
               <CustomerManage />
-            </Route>
+            </Route> */}
             <Route exact path="/home">
               <Product />
             </Route>
             <Route exact path="/product-detail/:productId">
-              <ProductDetail/>
+              <ProductDetail />
             </Route>
             <Route path="/**" render={() => <h2>Not found</h2>}></Route>
           </Switch>
