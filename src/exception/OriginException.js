@@ -1,9 +1,15 @@
 export function getOriginFailException(error) {
-    return error.response === undefined
-      ? "Fail to get origin"
-      : error.response.data.errorCode !== undefined
-      ? error.response.data.errorCode
-      : error.response.data.message !== undefined
-      ? error.response.data.message
-      : "Fail to get origin";
+  if (error.response === undefined) {
+    return "Fail to get origin, try again later";
   }
+  if (error.response.data.errorCode !== undefined) {
+    if (error.response.data.errorCode === "ERR_ORIGIN_ID_NOT_FOUND") {
+      return "Origin id not found, refresh and try again";
+    }
+    return error.response.data.errorCode;
+  }
+  if (error.response.data.message !== undefined) {
+    return error.response.data.message;
+  }
+  return "Fail to get origin, try again later";
+}
