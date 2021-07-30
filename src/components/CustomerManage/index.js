@@ -229,6 +229,7 @@ class index extends Component {
                   <tr>
                     <th scope="col">#</th>
                     <th scope="col">Username</th>
+                    <th scope="col">Sex</th>
                     <th scope="col">Name</th>
                     <th scope="col">Email</th>
                     <th scope="col">Phone number</th>
@@ -239,9 +240,10 @@ class index extends Component {
                 </thead>
                 <tbody>
                   {this.state.customerList.map((e, index) => (
-                    <tr key={e.username + e.updateDate + index}>
+                    <tr key={e.user.username + e.updateDate + index}>
                       <th scope="row">{index + 1}</th>
                       <td>{e.user.username}</td>
+                      <td>{e.sex===true?"Female":"Male"}</td>
                       <td>{e.name}</td>
                       <td>{e.email}</td>
                       <td>{e.phoneNumber}</td>
