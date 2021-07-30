@@ -10,6 +10,7 @@ import {
 } from "../../exception/CategoryException";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import { confirmAlert } from "react-confirm-alert"; // Import
 
 class CategoryModal extends Component {
   static propTypes = {
@@ -151,6 +152,28 @@ class CategoryModal extends Component {
     }
   }
 
+  handleSaveClick = () => {
+    if (this.props.business === "update" || this.props.business === "del") {
+      confirmAlert({
+        title: "Confirm to submit",
+        message: "Are you sure to do this.",
+        buttons: [
+          {
+            label: "Yes",
+            onClick: () => this.toggleSave(),
+          },
+          {
+            label: "No",
+            onClick: () => {},
+          },
+        ],
+        overlayClassName: "conform-box",
+      });
+    } else {
+      this.toggleSave();
+    }
+  };
+
   handleCategoryNameChange(e) {
     this.setState({ categoryName: e.target.value });
   }
@@ -210,7 +233,7 @@ class CategoryModal extends Component {
             </Form>
           </ModalBody>
           <ModalFooter>
-            <Button color={this.props.actionButtonColor} onClick={this.toggleSave} className={this.state.updateClassName}>
+            <Button color={this.props.actionButtonColor} onClick={this.handleSaveClick} className={this.state.updateClassName}>
               {this.props.actionButtonLabel}
             </Button>
             <Button color="secondary" onClick={this.toggle}>

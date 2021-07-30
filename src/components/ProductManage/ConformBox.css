@@ -1,0 +1,7 @@
+.conform-box {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  z-index: 1051;
+  height: 100%;
+}

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, Input } from "reactstrap";
 import * as ReviewService from "../../service/ReviewService";
 import { updateReviewFailException, reviewContentNullException, deleteReviewFailException } from "../../exception/ReviewException";
+import { confirmAlert } from "react-confirm-alert"; // Import
 
 export default class ReviewModal extends Component {
   constructor(props) {
@@ -91,6 +92,24 @@ export default class ReviewModal extends Component {
     }
   }
 
+  handleSaveClick = () => {
+    confirmAlert({
+      title: "Confirm to submit",
+      message: "Are you sure to do this.",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => this.toggleSave(),
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+      overlayClassName: "conform-box",
+    });
+  };
+
   handleReviewContentChange(e) {
     this.setState({ reviewContent: e.target.value });
   }
@@ -120,7 +139,7 @@ export default class ReviewModal extends Component {
             </Form>
           </ModalBody>
           <ModalFooter>
-            <Button color={this.props.actionButtonColor} onClick={this.toggleSave}>
+            <Button color={this.props.actionButtonColor} onClick={this.handleSaveClick}>
               {this.props.actionButtonLabel}
             </Button>
             <Button color="secondary" onClick={this.toggle}>

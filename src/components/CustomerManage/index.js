@@ -8,6 +8,7 @@ import * as CustomerService from "../../service/CustomerService";
 import { countCustomerFailException, getCustomerFailException, unlockCustomerFailException, lockCustomerFailException } from "../../exception/UserException";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import { confirmAlert } from "react-confirm-alert"; // Import
 
 class index extends Component {
   static propTypes = {
@@ -171,6 +172,42 @@ class index extends Component {
     }
   }
 
+  handleLockClick = (id) => {
+    confirmAlert({
+      title: "Confirm to submit",
+      message: "Are you sure you want to lock this customer",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => this.lockCustomer(id),
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+      overlayClassName: "conform-box",
+    });
+  };
+
+  handleUnlockClick = (id) => {
+    confirmAlert({
+      title: "Confirm to submit",
+      message: "Are you sure you want to unlock this customer",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => this.unlockCustomer(id),
+        },
+        {
+          label: "No",
+          onClick: () => {},
+        },
+      ],
+      overlayClassName: "conform-box",
+    });
+  };
+
   render() {
     return (
       <div>
@@ -212,11 +249,11 @@ class index extends Component {
                       <td>{e.createDate}</td>
                       <td className={this.state.lockClassName}>
                         {e.user.status === 1 ? (
-                          <Button color="danger" onClick={() => this.lockCustomer(e.user.id)}>
+                          <Button color="danger" onClick={() => this.handleLockClick(e.user.id)}>
                             Lock
                           </Button>
                         ) : (
-                          <Button color="primary" onClick={() => this.unlockCustomer(e.user.id)}>
+                          <Button color="primary" onClick={() => this.handleUnlockClick(e.user.id)}>
                             Unlock
                           </Button>
                         )}

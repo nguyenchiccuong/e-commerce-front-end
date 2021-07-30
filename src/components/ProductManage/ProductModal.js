@@ -17,6 +17,9 @@ import { getBrandFailException } from "../../exception/BrandException";
 import { getOriginFailException } from "../../exception/OriginException";
 import { instanceOf } from "prop-types";
 import { withCookies, Cookies } from "react-cookie";
+import { confirmAlert } from "react-confirm-alert"; // Import
+import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
+import "./ConformBox.css";
 
 class ProductModal extends Component {
   static propTypes = {
@@ -189,6 +192,28 @@ class ProductModal extends Component {
       this.deleteProduct(product);
     }
   }
+
+  handleSaveClick = () => {
+    if (this.props.business === "update" || this.props.business === "del") {
+      confirmAlert({
+        title: "Confirm to submit",
+        message: "Are you sure to do this.",
+        buttons: [
+          {
+            label: "Yes",
+            onClick: () => this.toggleSave(),
+          },
+          {
+            label: "No",
+            onClick: () => {},
+          },
+        ],
+        overlayClassName: "conform-box",
+      });
+    } else {
+      this.toggleSave();
+    }
+  };
 
   handleInsertRow() {
     let recentProductDetail = JSON.parse(JSON.stringify(this.state.productDetail));
@@ -766,7 +791,7 @@ class ProductModal extends Component {
             </Table>
           </ModalBody>
           <ModalFooter>
-            <Button color={this.props.actionButtonColor} onClick={this.toggleSave} className={this.state.updateClassName}>
+            <Button color={this.props.actionButtonColor} onClick={this.handleSaveClick} className={this.state.updateClassName}>
               {this.props.actionButtonLabel}
             </Button>
             <Button color="secondary" onClick={this.toggle}>
