@@ -26,6 +26,13 @@ export default class index extends Component {
       phoneNumber: "",
       password: "",
       repeatPassword: "",
+      errorUsername: "",
+      errorName: "",
+      errorEmail: "",
+      errorPhonenumber: "",
+      errorPassword: "",
+      errorRepeatPassword: "",
+      errorAgreement: "",
     };
 
     this.toggle = this.toggle.bind(this);
@@ -55,6 +62,20 @@ export default class index extends Component {
     this.setState({
       notiContent: "Create account success",
     });
+  }
+
+  clearErrorMessage() {
+    setTimeout(() => {
+      this.setState({
+        errorUsername: "",
+        errorName: "",
+        errorEmail: "",
+        errorPhonenumber: "",
+        errorPassword: "",
+        errorRepeatPassword: "",
+        errorAgreement: "",
+      });
+    }, 2000);
   }
 
   async signup(user, e) {
@@ -97,26 +118,26 @@ export default class index extends Component {
 
     if (checkPattern(patternID, username) === false) {
       this.setState({
-        notiContent: invalidUsernameException(),
+        errorUsername: invalidUsernameException(),
       });
-      this.toggle();
+      this.clearErrorMessage();
       return;
     }
 
     if (checkPattern(patternName, name) === false || name.trim() === "") {
       this.setState({
-        notiContent: invalidNameException(),
+        errorName: invalidNameException(),
       });
-      this.toggle();
+      this.clearErrorMessage();
       return;
     }
 
     if (email !== "") {
       if (checkPattern(patternEmail, email) === false) {
         this.setState({
-          notiContent: invalidEmailException(),
+          errorEmail: invalidEmailException(),
         });
-        this.toggle();
+        this.clearErrorMessage();
         return;
       }
     }
@@ -124,34 +145,34 @@ export default class index extends Component {
     if (phoneNumber !== "") {
       if (checkPattern(patternPhoneNumber, phoneNumber) === false || (phoneNumber.length < 7 && phoneNumber.length > 12) === true) {
         this.setState({
-          notiContent: invalidPhoneNumberException(),
+          errorPhonenumber: invalidPhoneNumberException(),
         });
-        this.toggle();
+        this.clearErrorMessage();
         return;
       }
     }
 
     if (checkPattern(patternPassword, password) === false) {
       this.setState({
-        notiContent: invalidPasswordException(),
+        errorPassword: invalidPasswordException(),
       });
-      this.toggle();
+      this.clearErrorMessage();
       return;
     }
 
     if (password.localeCompare(repeatPassword) !== 0) {
       this.setState({
-        notiContent: invalidRepeatPasswordException(),
+        errorRepeatPassword: invalidRepeatPasswordException(),
       });
-      this.toggle();
+      this.clearErrorMessage();
       return;
     }
 
     if (isChecked === false) {
       this.setState({
-        notiContent: notCheckAgreementException(),
+        errorAgreement: notCheckAgreementException(),
       });
-      this.toggle();
+      this.clearErrorMessage();
       return;
     }
 
@@ -185,6 +206,7 @@ export default class index extends Component {
               value={this.state.username}
               onChange={(e) => this.handleFieldChange(e, "username")}
             />
+            <small className="text-danger">{this.state.errorUsername}</small>
           </div>
           <div className="form-group pl-4 pr-3 pt-1 mb-1">
             <Label for="name">Name</Label>
@@ -198,6 +220,7 @@ export default class index extends Component {
               value={this.state.name}
               onChange={(e) => this.handleFieldChange(e, "name")}
             />
+            <small className="text-danger">{this.state.errorName}</small>
           </div>
           <div className="form-group pl-4 pr-3 pt-1 mb-1">
             <Label for="email">Email</Label>
@@ -214,6 +237,7 @@ export default class index extends Component {
             <small id="emailHelp" className="form-text text-muted">
               We'll never share your email with anyone else.
             </small>
+            <small className="text-danger">{this.state.email}</small>
           </div>
           <div className="form-group pl-4 pr-3 pt-1 mb-1">
             <Label for="phoneNumber">Phone number</Label>
@@ -227,6 +251,7 @@ export default class index extends Component {
               value={this.state.phoneNumber}
               onChange={(e) => this.handleFieldChange(e, "phoneNumber")}
             />
+            <small className="text-danger">{this.state.errorPhonenumber}</small>
           </div>
           <div className="form-group pl-4 pr-3 pt-1 mb-1">
             <Label for="password">Password</Label>
@@ -240,6 +265,7 @@ export default class index extends Component {
               value={this.state.password}
               onChange={(e) => this.handleFieldChange(e, "password")}
             />
+            <small className="text-danger">{this.state.errorPassword}</small>
           </div>
           <div className="form-group pl-4 pr-3 pt-1 mb-1">
             <Label for="repeatPassword">Repeat password</Label>
@@ -253,6 +279,7 @@ export default class index extends Component {
               value={this.state.repeatPassword}
               onChange={(e) => this.handleFieldChange(e, "repeatPassword")}
             />
+            <small className="text-danger">{this.state.errorRepeatPassword}</small>
           </div>
           <div className="form-group form-check pl-4 pr-3">
             <input
@@ -266,6 +293,7 @@ export default class index extends Component {
             <Label className="form-check-label" for="showRepeatPass">
               I have read and agree with all agreement!
             </Label>
+            <small className="text-danger">{this.state.errorAgreement}</small>
           </div>
           <Button type="submit" color="primary" className="submit-button w-100 text-center">
             Sign up
