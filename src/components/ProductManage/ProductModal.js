@@ -15,8 +15,14 @@ import {
 import { getParentCategoryFailException, getSubCategoryFailException } from "../../exception/CategoryException";
 import { getBrandFailException } from "../../exception/BrandException";
 import { getOriginFailException } from "../../exception/OriginException";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
-export default class ProductModal extends Component {
+class ProductModal extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -45,6 +51,9 @@ export default class ProductModal extends Component {
       brand: [],
       productDetail: [],
       flag: -1,
+      em: this.props.cookies.get("em") || "",
+      updateClassName: "",
+      deleteClassName: "",
     };
 
     this.toggle = this.toggle.bind(this);
@@ -275,7 +284,28 @@ export default class ProductModal extends Component {
     this.setState({ productDetail: recentProductDetail });
   }
 
+  handleButtonDisplay() {
+    if (this.state.em.role === "ROLE_EMPLOYEE") {
+      if (this.props.business === "update") {
+        this.setState({
+          updateClassName: "d-none",
+        });
+      } else if (this.props.business === "del") {
+        this.setState({
+          deleteClassName: "d-none",
+        });
+      }
+    } else if (this.state.em.role === "ROLE_MANAGER") {
+      if (this.props.business === "del") {
+        this.setState({
+          deleteClassName: "d-none",
+        });
+      }
+    }
+  }
+
   async componentDidMount() {
+    this.handleButtonDisplay();
     let parentCategoryResult = null;
     try {
       parentCategoryResult = await CategoryService.getParentCategory();
@@ -365,7 +395,7 @@ export default class ProductModal extends Component {
   render() {
     return (
       <div>
-        <Button color={this.props.color} onClick={this.toggle}>
+        <Button color={this.props.color} onClick={this.toggle} className={this.state.deleteClassName}>
           {this.props.buttonLabel}
         </Button>
         <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className} size="lg">
@@ -736,7 +766,7 @@ export default class ProductModal extends Component {
             </Table>
           </ModalBody>
           <ModalFooter>
-            <Button color={this.props.actionButtonColor} onClick={this.toggleSave}>
+            <Button color={this.props.actionButtonColor} onClick={this.toggleSave} className={this.state.updateClassName}>
               {this.props.actionButtonLabel}
             </Button>
             <Button color="secondary" onClick={this.toggle}>
@@ -748,3 +778,5 @@ export default class ProductModal extends Component {
     );
   }
 }
+
+export default withCookies(ProductModal);

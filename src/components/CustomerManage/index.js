@@ -6,8 +6,14 @@ import Footer from "../Footer";
 import Pagination from "../Pagination";
 import * as CustomerService from "../../service/CustomerService";
 import { countCustomerFailException, getCustomerFailException, unlockCustomerFailException, lockCustomerFailException } from "../../exception/UserException";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
-export default class index extends Component {
+class index extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
@@ -18,6 +24,8 @@ export default class index extends Component {
       itemPerPage: 4,
       customerList: [],
       flag: -1,
+      em: this.props.cookies.get("em") || "",
+      lockClassName: "",
     };
     this.toggle = this.toggle.bind(this);
   }
@@ -39,7 +47,16 @@ export default class index extends Component {
     );
   }
 
+  handleButtonDisplay() {
+    if (this.state.em.role === "ROLE_EMPLOYEE") {
+      this.setState({
+        lockClassName: "d-none",
+      });
+    }
+  }
+
   async componentDidMount() {
+    this.handleButtonDisplay();
     let page = null;
     try {
       page = await CustomerService.countCustomer();
@@ -193,7 +210,7 @@ export default class index extends Component {
                       <td>{e.phoneNumber}</td>
                       <td>{e.dob}</td>
                       <td>{e.createDate}</td>
-                      <td>
+                      <td className={this.state.lockClassName}>
                         {e.user.status === 1 ? (
                           <Button color="danger" onClick={() => this.lockCustomer(e.user.id)}>
                             Lock
@@ -230,3 +247,5 @@ export default class index extends Component {
     );
   }
 }
+
+export default withCookies(index);

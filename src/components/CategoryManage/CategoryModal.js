@@ -8,14 +8,23 @@ import {
   deleteCategoryFailException,
   invalidCategoryNameException,
 } from "../../exception/CategoryException";
+import { instanceOf } from "prop-types";
+import { withCookies, Cookies } from "react-cookie";
 
-export default class CategoryModal extends Component {
+class CategoryModal extends Component {
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
       modal: false,
       categoryName: this.props.categoryName,
       message: "",
+      em: this.props.cookies.get("em") || "",
+      updateClassName: "",
+      deleteClassName: "",
     };
     this.toggle = this.toggle.bind(this);
     this.toggleSave = this.toggleSave.bind(this);
@@ -146,10 +155,30 @@ export default class CategoryModal extends Component {
     this.setState({ categoryName: e.target.value });
   }
 
+  componentDidMount() {
+    if (this.state.em.role === "ROLE_EMPLOYEE") {
+      if (this.props.business === "update") {
+        this.setState({
+          updateClassName: "d-none",
+        });
+      } else if (this.props.business === "del") {
+        this.setState({
+          deleteClassName: "d-none",
+        });
+      }
+    } else if (this.state.em.role === "ROLE_MANAGER") {
+      if (this.props.business === "del") {
+        this.setState({
+          deleteClassName: "d-none",
+        });
+      }
+    }
+  }
+
   render() {
     return (
       <div>
-        <Button color={this.props.color} onClick={this.toggle}>
+        <Button color={this.props.color} onClick={this.toggle} className={this.state.deleteClassName}>
           {this.props.buttonLabel}
         </Button>
         <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className} size="lg">
@@ -181,7 +210,7 @@ export default class CategoryModal extends Component {
             </Form>
           </ModalBody>
           <ModalFooter>
-            <Button color={this.props.actionButtonColor} onClick={this.toggleSave}>
+            <Button color={this.props.actionButtonColor} onClick={this.toggleSave} className={this.state.updateClassName}>
               {this.props.actionButtonLabel}
             </Button>
             <Button color="secondary" onClick={this.toggle}>
@@ -193,3 +222,5 @@ export default class CategoryModal extends Component {
     );
   }
 }
+
+export default withCookies(CategoryModal);
