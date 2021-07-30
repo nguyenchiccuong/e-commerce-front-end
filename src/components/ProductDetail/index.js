@@ -213,7 +213,7 @@ class index extends Component {
                     </tr>
                     <tr>
                       <th scope="row">Weight:</th>
-                      <td>{this.state.product !== undefined ? this.state.product.weight + " kg" : ""}</td>
+                      <td>{this.state.product !== undefined ? (this.state.product.weight === null ? "" : this.state.product.weight + " kg") : ""}</td>
                     </tr>
                     <tr>
                       <th scope="row">Origin:</th>
@@ -221,7 +221,7 @@ class index extends Component {
                     </tr>
                     <tr>
                       <th scope="row">Warranty:</th>
-                      <td>{this.state.product !== undefined ? this.state.product.warranty + " days" : ""}</td>
+                      <td>{this.state.product !== undefined ? (this.state.product.warranty === null ? "" : this.state.product.warranty + " days") : ""}</td>
                     </tr>
                   </tbody>
                 </Table>
@@ -266,8 +266,8 @@ class index extends Component {
               </Form>
             </Col>
             <Col md="6">
-              <h1>Rating</h1>
-              <div className="d-plex plex-column p-3 mt-2 overflow-auto review-area">
+              <h1>Rating ({this.state.reviews.length})</h1>
+              <div className="d-plex plex-column p-3 mt-2 overflow-auto review-area border border-light bg-light">
                 {this.state.reviews.map((review) => (
                   <Card key={review.user.username + new Date(review.createDate).toString()}>
                     <CardHeader>

@@ -21,5 +21,6 @@
 }
 
 .review-area{
-  max-height: 40rem;
+  /* max-height: 40rem; */
+  height: 40rem;
 }
